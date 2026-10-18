@@ -3,9 +3,9 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
 import { dbManager } from '@/lib/db';
 import { AppShell } from '@/components/layout/AppShell';
+import { ContactsClient } from './ContactsClient';
 
 export const dynamic = 'force-dynamic';
-
 
 export default async function ContactosPage() {
   const session = await getSession();
@@ -13,58 +13,15 @@ export default async function ContactosPage() {
 
   const db = dbManager.getDb();
   const contacts = db.contacts.filter((c) => c.organization_id === session.organization_id);
+  const clients = db.clients.filter((c) => c.organization_id === session.organization_id);
 
   return (
     <AppShell user={session}>
-      <div className="space-y-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-[#F4F7FA]">Directorio de Contactos</h1>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#F0B454]/15 text-[#F0B454] border border-[#F0B454]/30">
-              Fase 2 Comercial
-            </span>
-          </div>
-          <p className="text-xs text-[#A5B2C1] mt-1">
-            Personas clave, cargos directivos y canales de comunicación preferidos.
-          </p>
-        </div>
-
-        <div className="crm-card p-6">
-          <div className="flex items-center justify-between pb-3 border-b border-[#30404E] mb-4">
-            <span className="text-xs font-bold text-[#F4F7FA]">Contactos Registrados ({contacts.length})</span>
-            <span className="text-[10px] text-[#A5B2C1]">Fase 2: Gestión de contactos</span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#202C39] border-b border-[#30404E] text-[#A5B2C1] text-[10px] uppercase">
-                <tr>
-                  <th className="py-2.5 px-3">Contacto</th>
-                  <th className="py-2.5 px-3">Cargo</th>
-                  <th className="py-2.5 px-3">Correo</th>
-                  <th className="py-2.5 px-3">Teléfono</th>
-                  <th className="py-2.5 px-3">Canal Preferido</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#30404E]/50">
-                {contacts.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#202C39]/40">
-                    <td className="py-2.5 px-3 font-semibold text-[#F4F7FA]">{c.first_name} {c.last_name}</td>
-                    <td className="py-2.5 px-3 text-[#A5B2C1]">{c.job_title}</td>
-                    <td className="py-2.5 px-3 text-[#A5B2C1]">{c.email}</td>
-                    <td className="py-2.5 px-3 text-[#A5B2C1]">{c.phone}</td>
-                    <td className="py-2.5 px-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#28B8AA]/15 text-[#28B8AA]">
-                        {c.preferred_channel}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <ContactsClient
+        initialContacts={contacts}
+        clients={clients}
+        currentUser={session}
+      />
     </AppShell>
   );
 }
