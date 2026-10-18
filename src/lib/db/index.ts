@@ -39,7 +39,10 @@ export interface DatabaseSchema {
   audit_logs: AuditLog[];
 }
 
-const DB_DIR = path.join(process.cwd(), '.data');
+// En Vercel (producción) el filesystem es de solo lectura excepto /tmp
+// En desarrollo local usamos .data/ en el directorio del proyecto
+const IS_VERCEL = process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
+const DB_DIR = IS_VERCEL ? '/tmp/crm_data' : path.join(process.cwd(), '.data');
 const DB_FILE = path.join(DB_DIR, 'crm_database.json');
 
 // Generador de UUID v4 seguro

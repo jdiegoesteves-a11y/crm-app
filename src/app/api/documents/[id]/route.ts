@@ -6,7 +6,10 @@ import { dbManager } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-const UPLOAD_DIR = path.join(process.cwd(), '.data', 'uploads');
+const IS_VERCEL = process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
+const UPLOAD_DIR = IS_VERCEL
+  ? '/tmp/crm_data/uploads'
+  : path.join(process.cwd(), '.data', 'uploads');
 
 export async function GET(
   _request: NextRequest,

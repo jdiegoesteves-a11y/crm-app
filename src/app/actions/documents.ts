@@ -7,7 +7,10 @@ import { dbManager, generateId } from '@/lib/db';
 import { getSession } from '@/lib/auth/session';
 import { DocumentAttachment, DocumentEntityType } from '@/types/database';
 
-const UPLOAD_DIR = path.join(process.cwd(), '.data', 'uploads');
+const IS_VERCEL = process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
+const UPLOAD_DIR = IS_VERCEL
+  ? '/tmp/crm_data/uploads'
+  : path.join(process.cwd(), '.data', 'uploads');
 
 function ensureUploadDir() {
   if (!fs.existsSync(UPLOAD_DIR)) {
