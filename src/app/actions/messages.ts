@@ -325,13 +325,14 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
       integration.last_error = undefined;
       integration.updated_at = now.toISOString();
     } else {
+      const defaultAppId = process.env.INSTAGRAM_APP_ID || '1107212452239193';
       integration = {
         id: generateId(),
         organization_id: session.organization_id,
         provider: 'instagram',
-        app_id: '110721452239193',
+        app_id: defaultAppId,
         app_name: 'CRM Executive-IG',
-        account_id: userId.trim() || '110721452239193',
+        account_id: userId.trim() || defaultAppId,
         account_username: username.trim() || 'cuenta_profesional',
         access_token: accessToken.trim(),
         token_expires_at: expiresAt,

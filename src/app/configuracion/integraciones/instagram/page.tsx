@@ -19,7 +19,7 @@ export default async function InstagramIntegrationPage() {
     (i) => i.organization_id === session.organization_id && i.provider === 'instagram'
   ) || null;
 
-  const appId = process.env.INSTAGRAM_APP_ID || '110721452239193';
+  const appId = process.env.INSTAGRAM_APP_ID || '1107212452239193';
   const verifyToken = process.env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN || 'crm_executive_ig_verify_token_2026_secure';
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
 

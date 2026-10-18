@@ -123,7 +123,7 @@ export default async function ConfiguracionPage() {
                     IG
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#28B8AA]/15 text-[#28B8AA] border border-[#28B8AA]/30">
-                    App ID: 110721452239193
+                    App ID: 1107212452239193
                   </span>
                 </div>
                 <h3 className="text-sm font-bold text-[#F4F7FA] group-hover:text-[#28B8AA] transition-colors">

@@ -36,16 +36,21 @@ export class InstagramClient {
   private appSecret: string;
 
   constructor() {
-    this.appId = process.env.INSTAGRAM_APP_ID || '110721452239193';
+    this.appId = process.env.INSTAGRAM_APP_ID || '1107212452239193';
     this.appSecret = process.env.INSTAGRAM_APP_SECRET || '';
   }
 
   public getAppId(): string {
-    return this.appId;
+    return process.env.INSTAGRAM_APP_ID || this.appId;
+  }
+
+  public getAppSecret(): string {
+    return process.env.INSTAGRAM_APP_SECRET || this.appSecret;
   }
 
   public hasAppSecret(): boolean {
-    return Boolean(this.appSecret && this.appSecret.trim().length > 0);
+    const secret = this.getAppSecret();
+    return Boolean(secret && secret.trim().length > 0);
   }
 
   /**
@@ -54,10 +59,9 @@ export class InstagramClient {
    */
   public getAuthorizationUrl(redirectUri: string, state: string): string {
     const scopes = ['instagram_business_basic', 'instagram_business_manage_messages'].join(',');
+    const appId = this.getAppId();
     const params = new URLSearchParams({
-      enable_fb_login: '0',
-      force_authentication: '1',
-      client_id: this.appId,
+      client_id: appId,
       redirect_uri: redirectUri,
       response_type: 'code',
       scope: scopes,
@@ -72,8 +76,8 @@ export class InstagramClient {
    */
   public async exchangeCodeForToken(code: string, redirectUri: string): Promise<InstagramTokenResponse> {
     const formData = new URLSearchParams();
-    formData.append('client_id', this.appId);
-    formData.append('client_secret', this.appSecret);
+    formData.append('client_id', this.getAppId());
+    formData.append('client_secret', this.getAppSecret());
     formData.append('grant_type', 'authorization_code');
     formData.append('redirect_uri', redirectUri);
     formData.append('code', code);
