@@ -8,9 +8,15 @@ const SECRET_KEY = process.env.JWT_SECRET || 'executive_dark_jwt_secret_key_mini
 const ENCODED_KEY = new TextEncoder().encode(SECRET_KEY);
 
 const PUBLIC_PATHS = ['/login', '/recuperar-password', '/reset-password'];
+const LEGAL_PATHS = ['/privacidad', '/terminos', '/eliminacion-datos'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Páginas públicas legales requeridas por Meta / Google
+  if (LEGAL_PATHS.some((path) => pathname === path || pathname.startsWith(path + '/'))) {
+    return NextResponse.next();
+  }
 
   // Ignorar archivos estáticos, imágenes y favicon
   if (
