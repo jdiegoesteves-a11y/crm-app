@@ -11,7 +11,7 @@ export default async function MensajesPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const orgId = session.organization_id;
 
   const conversations = (db.conversations || []).filter((c) => c.organization_id === orgId);

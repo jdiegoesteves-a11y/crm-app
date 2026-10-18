@@ -12,7 +12,7 @@ export default async function NuevaCotizacionPage() {
   if (!session) redirect('/login');
   if (session.role === 'consulta') redirect('/cotizaciones');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const clients = db.clients.filter((c) => c.organization_id === session.organization_id);
   const opportunities = db.opportunities.filter((o) => o.organization_id === session.organization_id);
   const products = db.products.filter((p) => p.organization_id === session.organization_id && p.is_active);

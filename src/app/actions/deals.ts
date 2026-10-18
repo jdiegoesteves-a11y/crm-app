@@ -41,7 +41,7 @@ export async function createOpportunityAction(prevState: unknown, formData: Form
       return { success: false, error: parsed.error.issues[0]?.message || 'Datos de la oportunidad inválidos' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const stage = db.pipeline_stages.find((s) => s.id === parsed.data.stage_id);
     const prob = parsed.data.probability !== undefined ? parsed.data.probability : (stage?.probability ?? 50);
 
@@ -64,9 +64,9 @@ export async function createOpportunityAction(prevState: unknown, formData: Form
     };
 
     db.opportunities.unshift(newOpportunity);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CREAR_OPORTUNIDAD',
       'opportunity',
@@ -91,7 +91,7 @@ export async function updateOpportunityStageAction(opportunityId: string, newSta
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const opp = db.opportunities.find((o) => o.id === opportunityId && o.organization_id === session.organization_id);
     if (!opp) return { success: false, error: 'Oportunidad no encontrada' };
 
@@ -113,9 +113,9 @@ export async function updateOpportunityStageAction(opportunityId: string, newSta
       opp.closed_at = undefined;
     }
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CAMBIO_ETAPA_OPORTUNIDAD',
       'opportunity',
@@ -139,14 +139,14 @@ export async function deleteOpportunityAction(opportunityId: string) {
       return { success: false, error: 'Solo Administradores y Gerentes pueden eliminar oportunidades.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const index = db.opportunities.findIndex((o) => o.id === opportunityId && o.organization_id === session.organization_id);
     if (index === -1) return { success: false, error: 'Oportunidad no encontrada' };
 
     const deleted = db.opportunities.splice(index, 1)[0];
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ELIMINAR_OPORTUNIDAD',
       'opportunity',

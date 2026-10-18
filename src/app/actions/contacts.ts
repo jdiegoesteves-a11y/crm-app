@@ -39,7 +39,7 @@ export async function createContactAction(prevState: unknown, formData: FormData
       return { success: false, error: parsed.error.issues[0]?.message || 'Datos del contacto inválidos' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const now = new Date().toISOString();
 
     const newContact: Contact = {
@@ -58,9 +58,9 @@ export async function createContactAction(prevState: unknown, formData: FormData
     };
 
     db.contacts.unshift(newContact);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CREAR_CONTACTO',
       'contact',
@@ -85,14 +85,14 @@ export async function deleteContactAction(contactId: string) {
       return { success: false, error: 'No autorizado' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const index = db.contacts.findIndex((c) => c.id === contactId && c.organization_id === session.organization_id);
     if (index === -1) return { success: false, error: 'Contacto no encontrado' };
 
     const deleted = db.contacts.splice(index, 1)[0];
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ELIMINAR_CONTACTO',
       'contact',

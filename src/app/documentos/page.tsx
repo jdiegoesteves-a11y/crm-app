@@ -11,7 +11,7 @@ export default async function DocumentosPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const documents = (db.documents || []).filter(
     (d) => d.organization_id === session.organization_id
   );

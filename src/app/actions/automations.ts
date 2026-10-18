@@ -13,7 +13,7 @@ export async function runAutomationsAction() {
       return { success: false, error: 'Solo Administradores y Gerentes pueden ejecutar el motor de automatizaciones.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const orgId = session.organization_id;
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
@@ -70,9 +70,9 @@ export async function runAutomationsAction() {
       }
     }
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       orgId,
       'MOTOR_AUTOMATIZACION_EJECUTADO',
       'automation',

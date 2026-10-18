@@ -36,7 +36,7 @@ export async function createQuoteAction(input: CreateQuoteInput) {
       return { success: false, error: 'Debe incluir al menos un ítem en la cotización' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const orgQuotes = db.quotes.filter((q) => q.organization_id === session.organization_id);
 
     // Consecutivo correlativo dinámico: COT-2026-000X
@@ -107,9 +107,9 @@ export async function createQuoteAction(input: CreateQuoteInput) {
 
     db.quotes.unshift(newQuote);
     db.quote_items.push(...savedItems);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CREAR_COTIZACION',
       'quote',
@@ -135,15 +135,15 @@ export async function updateQuoteStatusAction(quoteId: string, newStatus: QuoteS
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const quote = db.quotes.find((q) => q.id === quoteId && q.organization_id === session.organization_id);
     if (!quote) return { success: false, error: 'Cotización no encontrada' };
 
     quote.status = newStatus;
     quote.updated_at = new Date().toISOString();
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ACTUALIZAR_ESTADO_COTIZACION',
       'quote',
@@ -167,15 +167,15 @@ export async function deleteQuoteAction(quoteId: string) {
       return { success: false, error: 'Solo Administradores y Gerentes pueden eliminar cotizaciones.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const index = db.quotes.findIndex((q) => q.id === quoteId && q.organization_id === session.organization_id);
     if (index === -1) return { success: false, error: 'Cotización no encontrada' };
 
     const deleted = db.quotes.splice(index, 1)[0];
     db.quote_items = db.quote_items.filter((item) => item.quote_id !== quoteId);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ELIMINAR_COTIZACION',
       'quote',

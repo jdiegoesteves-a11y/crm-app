@@ -16,7 +16,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
   if (!session) redirect('/login');
 
   const { id } = await params;
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
 
   const client = db.clients.find(
     (c) => c.id === id && c.organization_id === session.organization_id

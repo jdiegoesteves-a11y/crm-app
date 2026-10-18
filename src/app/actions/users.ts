@@ -36,7 +36,7 @@ export async function createUserAction(prevState: unknown, formData: FormData) {
     }
 
     const { full_name, email, role, phone, password } = parsed.data;
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
 
     // Validar si el correo ya existe
     const exists = db.profiles.some(
@@ -62,9 +62,9 @@ export async function createUserAction(prevState: unknown, formData: FormData) {
     };
 
     db.profiles.push(newProfile);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CREAR_USUARIO',
       'profile',
@@ -92,7 +92,7 @@ export async function toggleUserStatusAction(userId: string) {
       return { success: false, error: 'Por seguridad, no puede desactivar su propia cuenta de administrador.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const profile = db.profiles.find((p) => p.id === userId && p.organization_id === session.organization_id);
 
     if (!profile) {
@@ -101,9 +101,9 @@ export async function toggleUserStatusAction(userId: string) {
 
     profile.is_active = !profile.is_active;
     profile.updated_at = new Date().toISOString();
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       profile.is_active ? 'ACTIVAR_USUARIO' : 'DESACTIVAR_USUARIO',
       'profile',
@@ -126,7 +126,7 @@ export async function updateUserRoleAction(userId: string, newRole: UserRole) {
       return { success: false, error: 'No autorizado: Solo administradores pueden cambiar roles.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const profile = db.profiles.find((p) => p.id === userId && p.organization_id === session.organization_id);
 
     if (!profile) {
@@ -146,9 +146,9 @@ export async function updateUserRoleAction(userId: string, newRole: UserRole) {
     const oldRole = profile.role;
     profile.role = newRole;
     profile.updated_at = new Date().toISOString();
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CAMBIO_ROL_USUARIO',
       'profile',

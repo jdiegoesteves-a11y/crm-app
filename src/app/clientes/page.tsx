@@ -11,7 +11,7 @@ export default async function ClientesPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const clients = db.clients.filter((c) => c.organization_id === session.organization_id);
   const users = db.profiles
     .filter((u) => u.organization_id === session.organization_id && u.is_active)

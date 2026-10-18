@@ -9,8 +9,8 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-export function AppShell({ user, children }: AppShellProps) {
-  const db = dbManager.getDb();
+export async function AppShell({ user, children }: AppShellProps) {
+  const db = await dbManager.getDb();
   const now = new Date().getTime();
 
   // Filtrar actividades urgentes y pendientes para las notificaciones de la Topbar

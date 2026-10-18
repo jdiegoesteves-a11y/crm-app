@@ -22,7 +22,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
 
     const doc = db.documents.find(
       (d) => d.id === id && d.organization_id === session.organization_id

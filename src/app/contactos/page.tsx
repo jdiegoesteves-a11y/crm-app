@@ -11,7 +11,7 @@ export default async function ContactosPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const contacts = db.contacts.filter((c) => c.organization_id === session.organization_id);
   const clients = db.clients.filter((c) => c.organization_id === session.organization_id);
 

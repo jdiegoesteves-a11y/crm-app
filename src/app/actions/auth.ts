@@ -27,7 +27,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     }
 
     const { email, password } = parsed.data;
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
 
     // Buscar perfil por correo (insensible a mayúsculas)
     const profile = db.profiles.find(
@@ -55,7 +55,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
 
     if (!isPasswordValid) {
       try {
-        dbManager.logAudit(
+        await dbManager.logAudit(
           profile.organization_id,
           'INTENTO_LOGIN_FALLIDO',
           'profile',
@@ -80,7 +80,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
 
     // Actualizar último acceso
     profile.last_login_at = new Date().toISOString();
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
     // Crear sesión JWT segura
     const sessionUser: SessionUser = {
@@ -99,7 +99,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
 
     // Registrar en bitácora de auditoría de forma segura
     try {
-      dbManager.logAudit(
+      await dbManager.logAudit(
         profile.organization_id,
         'LOGIN_EXITOSO',
         'profile',
@@ -126,7 +126,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
 export async function logoutAction() {
   const session = await getSession();
   if (session) {
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'LOGOUT',
       'profile',
@@ -152,11 +152,11 @@ export async function requestPasswordResetAction(prevState: unknown, formData: F
       return { success: false, error: 'Ingrese una dirección de correo válida.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const profile = db.profiles.find((p) => p.email.toLowerCase() === email.toLowerCase());
 
     if (profile) {
-      dbManager.logAudit(
+      await dbManager.logAudit(
         profile.organization_id,
         'SOLICITUD_RECUPERACION_PASSWORD',
         'profile',

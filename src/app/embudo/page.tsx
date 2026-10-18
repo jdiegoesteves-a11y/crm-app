@@ -11,7 +11,7 @@ export default async function EmbudoPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const stages = db.pipeline_stages
     .filter((s) => s.organization_id === session.organization_id)
     .sort((a, b) => a.order_index - b.order_index);

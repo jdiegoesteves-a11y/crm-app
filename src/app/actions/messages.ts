@@ -20,7 +20,7 @@ export async function sendChatMessageAction(
       return { success: false, error: 'El mensaje no puede estar vacío' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const conv = db.conversations.find(
       (c) => c.id === conversationId && c.organization_id === session.organization_id
     );
@@ -48,7 +48,7 @@ export async function sendChatMessageAction(
       };
 
       db.messages.push(internalMsg);
-      dbManager.saveDb(db);
+      await dbManager.saveDb(db);
       revalidatePath('/mensajes');
 
       return { success: true, message: internalMsg };
@@ -103,7 +103,7 @@ export async function sendChatMessageAction(
         };
 
         db.messages.push(failedMsg);
-        dbManager.saveDb(db);
+        await dbManager.saveDb(db);
         revalidatePath('/mensajes');
 
         return {
@@ -140,9 +140,9 @@ export async function sendChatMessageAction(
       }
       conv.updated_at = now.toISOString();
 
-      dbManager.saveDb(db);
+      await dbManager.saveDb(db);
 
-      dbManager.logAudit(
+      await dbManager.logAudit(
         session.organization_id,
         'INSTAGRAM_MENSAJE_ENVIADO',
         'conversation',
@@ -168,7 +168,7 @@ export async function assignConversationAction(conversationId: string, agentId: 
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const conv = db.conversations.find(
       (c) => c.id === conversationId && c.organization_id === session.organization_id
     );
@@ -182,9 +182,9 @@ export async function assignConversationAction(conversationId: string, agentId: 
     }
     conv.updated_at = new Date().toISOString();
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'TRANSFERIR_CONVERSACION',
       'conversation',
@@ -205,7 +205,7 @@ export async function updateConversationStatusAction(conversationId: string, new
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const conv = db.conversations.find(
       (c) => c.id === conversationId && c.organization_id === session.organization_id
     );
@@ -215,7 +215,7 @@ export async function updateConversationStatusAction(conversationId: string, new
     conv.status = newStatus;
     conv.updated_at = new Date().toISOString();
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
     revalidatePath('/mensajes');
     return { success: true };
   } catch {
@@ -229,7 +229,7 @@ export async function linkConversationToClientAction(conversationId: string, cli
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const conv = db.conversations.find(
       (c) => c.id === conversationId && c.organization_id === session.organization_id
     );
@@ -242,9 +242,9 @@ export async function linkConversationToClientAction(conversationId: string, cli
     conv.contact_name = client.name;
     conv.updated_at = new Date().toISOString();
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'VINCULAR_CONVERSACION_CLIENTE',
       'conversation',
@@ -267,7 +267,7 @@ export async function disconnectInstagramAction() {
       return { success: false, error: 'Solo Administradores pueden desconectar integraciones' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const integration = db.integrations.find(
       (i) => i.organization_id === session.organization_id && i.provider === 'instagram'
     );
@@ -278,9 +278,9 @@ export async function disconnectInstagramAction() {
     integration.access_token = undefined;
     integration.updated_at = new Date().toISOString();
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'INSTAGRAM_DESCONECTADO',
       'integration',
@@ -306,7 +306,7 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
       return { success: false, error: 'El access token es requerido' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 60 * 86400 * 1000).toISOString();
 
@@ -344,9 +344,9 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
       db.integrations.push(integration);
     }
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'INSTAGRAM_TOKEN_MANUAL_CONFIGURADO',
       'integration',

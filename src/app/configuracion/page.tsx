@@ -19,7 +19,7 @@ export default async function ConfiguracionPage() {
     redirect('/dashboard?error=no_autorizado');
   }
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const org = db.organizations.find((o) => o.id === session.organization_id);
 
   return (

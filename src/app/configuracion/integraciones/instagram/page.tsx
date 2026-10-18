@@ -14,7 +14,7 @@ export default async function InstagramIntegrationPage() {
     redirect('/dashboard?error=no_autorizado');
   }
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const integration = db.integrations.find(
     (i) => i.organization_id === session.organization_id && i.provider === 'instagram'
   ) || null;

@@ -14,7 +14,7 @@ export async function GET(_request: NextRequest) {
       return new NextResponse('Acceso no autorizado', { status: 403 });
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const now = new Date();
     const rawContent = JSON.stringify(db, null, 2);
     const hash = crypto.createHash('sha256').update(rawContent).digest('hex');
@@ -47,7 +47,7 @@ export async function GET(_request: NextRequest) {
     const buffer = Buffer.from(JSON.stringify(backupPayload, null, 2), 'utf-8');
     const filename = `crm-backup-${now.toISOString().split('T')[0]}.json`;
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'DESCARGAR_RESPALDO_BASE_DATOS',
       'system',

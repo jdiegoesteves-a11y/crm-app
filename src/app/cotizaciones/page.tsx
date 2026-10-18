@@ -11,7 +11,7 @@ export default async function CotizacionesPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const quotes = db.quotes.filter((q) => q.organization_id === session.organization_id);
   const clients = db.clients.filter((c) => c.organization_id === session.organization_id);
 

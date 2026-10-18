@@ -11,7 +11,7 @@ export default async function ProspectosPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const leads = db.leads.filter((l) => l.organization_id === session.organization_id);
   const users = db.profiles
     .filter((u) => u.organization_id === session.organization_id && u.is_active)

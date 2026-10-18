@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import { isSupabaseConfigured, readFromSupabase, writeToSupabase } from './supabase-adapter';
 import {
   Organization,
   Profile,
@@ -552,86 +553,108 @@ function getInitialSeedData(): DatabaseSchema {
   };
 }
 
-// Lectura y escritura atómica con archivo persistente
+// ─────────────────────────────────────────────────────────────────────────────
+// DatabaseManager — Adaptador dual: Supabase (producción) / Archivo (desarrollo)
+// ─────────────────────────────────────────────────────────────────────────────
 class DatabaseManager {
-  private cache: DatabaseSchema | null = null;
 
-  private ensureDbExists(): void {
+  // ── Helpers de archivo local (desarrollo) ─────────────────────────────────
+
+  private ensureLocalDbExists(): void {
     if (!fs.existsSync(DB_DIR)) {
       fs.mkdirSync(DB_DIR, { recursive: true });
     }
     if (!fs.existsSync(DB_FILE)) {
-      const initialData = getInitialSeedData();
-      fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf-8');
-      this.cache = initialData;
+      fs.writeFileSync(DB_FILE, JSON.stringify(getInitialSeedData(), null, 2), 'utf-8');
     }
   }
 
-  public getDb(): DatabaseSchema {
-    this.ensureDbExists();
+  private readLocalDb(): DatabaseSchema {
+    this.ensureLocalDbExists();
     try {
       const content = fs.readFileSync(DB_FILE, 'utf-8');
-      this.cache = JSON.parse(content) as DatabaseSchema;
+      return JSON.parse(content) as DatabaseSchema;
     } catch {
-      if (!this.cache) {
-        this.cache = getInitialSeedData();
-      }
+      return getInitialSeedData();
     }
-    if (!this.cache.products) this.cache.products = [];
-    if (!this.cache.quotes) this.cache.quotes = [];
-    if (!this.cache.quote_items) this.cache.quote_items = [];
-    if (!this.cache.documents) this.cache.documents = [];
-    if (!this.cache.integrations) this.cache.integrations = [];
-    if (!this.cache.conversations) this.cache.conversations = [];
-    if (!this.cache.messages) this.cache.messages = [];
-    if (!this.cache.audit_logs) this.cache.audit_logs = [];
-    return this.cache;
   }
 
-  public saveDb(data: DatabaseSchema): void {
-    this.ensureDbExists();
-    this.cache = data;
+  private writeLocalDb(data: DatabaseSchema): void {
+    this.ensureLocalDbExists();
     try {
       fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (err) {
-      console.warn('[DatabaseManager] Aviso: archivo bloqueado temporalmente por el watcher, persistiendo con atomic swap:', err);
+    } catch {
       try {
-        const tempFile = `${DB_FILE}.tmp`;
-        fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
-        fs.renameSync(tempFile, DB_FILE);
-      } catch {
-        // Fallback resiliente: el caché en memoria garantiza la continuidad de la sesión
-      }
+        const tmp = `${DB_FILE}.tmp`;
+        fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf-8');
+        fs.renameSync(tmp, DB_FILE);
+      } catch { /* fallback silencioso */ }
     }
   }
 
-  // Registra un evento de auditoría de forma inmutable
-  public logAudit(
+  // ── Normalización de campos opcionales ────────────────────────────────────
+
+  private normalize(db: DatabaseSchema): DatabaseSchema {
+    if (!db.products) db.products = [];
+    if (!db.quotes) db.quotes = [];
+    if (!db.quote_items) db.quote_items = [];
+    if (!db.documents) db.documents = [];
+    if (!db.integrations) db.integrations = [];
+    if (!db.conversations) db.conversations = [];
+    if (!db.messages) db.messages = [];
+    if (!db.audit_logs) db.audit_logs = [];
+    return db;
+  }
+
+  // ── API pública async ──────────────────────────────────────────────────────
+
+  public async getDb(): Promise<DatabaseSchema> {
+    if (isSupabaseConfigured) {
+      const data = await readFromSupabase<DatabaseSchema>();
+      if (data) return this.normalize(data);
+      // Primera vez: seeder inicial → escribir en Supabase
+      const seed = getInitialSeedData();
+      await writeToSupabase(seed);
+      return seed;
+    }
+    return this.normalize(this.readLocalDb());
+  }
+
+  public async saveDb(data: DatabaseSchema): Promise<void> {
+    if (isSupabaseConfigured) {
+      await writeToSupabase(data);
+    } else {
+      this.writeLocalDb(data);
+    }
+  }
+
+  public async logAudit(
     orgId: string,
     action: string,
     entityName: string,
     entityId: string,
     details: string,
     user?: { id?: string; email?: string }
-  ): void {
-    const db = this.getDb();
-    const log: AuditLog = {
-      id: generateId(),
-      organization_id: orgId,
-      user_id: user?.id,
-      user_email: user?.email,
-      action,
-      entity_name: entityName,
-      entity_id: entityId,
-      details,
-      created_at: new Date().toISOString(),
-    };
-    db.audit_logs.unshift(log);
-    // Limitar logs a 1000 para optimización de memoria
-    if (db.audit_logs.length > 1000) {
-      db.audit_logs.pop();
+  ): Promise<void> {
+    try {
+      const db = await this.getDb();
+      const log: AuditLog = {
+        id: generateId(),
+        organization_id: orgId,
+        user_id: user?.id,
+        user_email: user?.email,
+        action,
+        entity_name: entityName,
+        entity_id: entityId,
+        details,
+        created_at: new Date().toISOString(),
+      };
+      db.audit_logs.unshift(log);
+      if (db.audit_logs.length > 1000) db.audit_logs.pop();
+      await this.saveDb(db);
+    } catch (err) {
+      console.warn('[DatabaseManager] logAudit falló silenciosamente:', err);
     }
-    this.saveDb(db);
   }
 }
 

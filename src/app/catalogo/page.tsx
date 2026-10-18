@@ -11,7 +11,7 @@ export default async function CatalogoPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const products = db.products.filter((p) => p.organization_id === session.organization_id);
 
   return (

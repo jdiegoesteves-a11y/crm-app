@@ -67,7 +67,7 @@ export async function uploadDocumentAction(formData: FormData) {
     const buffer = Buffer.from(arrayBuffer);
     fs.writeFileSync(targetFilePath, buffer);
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const docId = generateId();
 
     const newDoc: DocumentAttachment = {
@@ -84,9 +84,9 @@ export async function uploadDocumentAction(formData: FormData) {
     };
 
     db.documents.unshift(newDoc);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'SUBIR_DOCUMENTO',
       'document',
@@ -120,7 +120,7 @@ export async function deleteDocumentAction(documentId: string) {
       return { success: false, error: 'Solo Administradores y Gerentes pueden eliminar documentos.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const index = db.documents.findIndex(
       (d) => d.id === documentId && d.organization_id === session.organization_id
     );
@@ -137,9 +137,9 @@ export async function deleteDocumentAction(documentId: string) {
     }
 
     db.documents.splice(index, 1);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ELIMINAR_DOCUMENTO',
       'document',

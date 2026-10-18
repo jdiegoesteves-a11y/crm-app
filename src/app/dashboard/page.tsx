@@ -13,7 +13,7 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
 
   const opportunities = db.opportunities.filter((o) => o.organization_id === session.organization_id);
   const leads = db.leads.filter((l) => l.organization_id === session.organization_id);

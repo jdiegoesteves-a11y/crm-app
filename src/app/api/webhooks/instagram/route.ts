@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: 'IGNORED_OBJECT' }, { status: 200 });
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const defaultOrg = db.organizations[0];
     const orgId = defaultOrg?.id || 'org-acme-001';
     const now = new Date();
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (processedCount > 0) {
-      dbManager.saveDb(db);
-      dbManager.logAudit(
+      await dbManager.saveDb(db);
+      await dbManager.logAudit(
         orgId,
         'INSTAGRAM_MENSAJE_RECIBIDO',
         'conversation',

@@ -43,7 +43,7 @@ export async function createActivityAction(prevState: unknown, formData: FormDat
       return { success: false, error: parsed.error.issues[0]?.message || 'Datos de la actividad inválidos' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const now = new Date().toISOString();
 
     const newActivity: Activity = {
@@ -64,9 +64,9 @@ export async function createActivityAction(prevState: unknown, formData: FormDat
     };
 
     db.activities.unshift(newActivity);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CREAR_ACTIVIDAD',
       'activity',
@@ -93,7 +93,7 @@ export async function updateActivityStatusAction(activityId: string, newStatus: 
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const activity = db.activities.find((a) => a.id === activityId && a.organization_id === session.organization_id);
     if (!activity) return { success: false, error: 'Actividad no encontrada' };
 
@@ -106,9 +106,9 @@ export async function updateActivityStatusAction(activityId: string, newStatus: 
       activity.completed_at = undefined;
     }
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       newStatus === 'completada' ? 'COMPLETAR_ACTIVIDAD' : 'ACTUALIZAR_ESTADO_ACTIVIDAD',
       'activity',
@@ -135,14 +135,14 @@ export async function deleteActivityAction(activityId: string) {
       return { success: false, error: 'No autorizado' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const index = db.activities.findIndex((a) => a.id === activityId && a.organization_id === session.organization_id);
     if (index === -1) return { success: false, error: 'Actividad no encontrada' };
 
     const deleted = db.activities.splice(index, 1)[0];
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ELIMINAR_ACTIVIDAD',
       'activity',

@@ -15,7 +15,7 @@ export default async function ImprimirCotizacionPage({
   if (!session) redirect('/login');
 
   const { id } = await params;
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
 
   const quote = db.quotes.find(
     (q) => q.id === id && q.organization_id === session.organization_id

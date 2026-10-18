@@ -49,7 +49,7 @@ export async function createLeadAction(prevState: unknown, formData: FormData) {
       return { success: false, error: parsed.error.issues[0]?.message || 'Datos del prospecto inválidos' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const now = new Date().toISOString();
 
     const newLead: Lead = {
@@ -74,9 +74,9 @@ export async function createLeadAction(prevState: unknown, formData: FormData) {
     };
 
     db.leads.unshift(newLead);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CREAR_PROSPECTO',
       'lead',
@@ -100,7 +100,7 @@ export async function updateLeadAction(leadId: string, formData: FormData) {
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const lead = db.leads.find((l) => l.id === leadId && l.organization_id === session.organization_id);
     if (!lead) return { success: false, error: 'Prospecto no encontrado' };
 
@@ -119,9 +119,9 @@ export async function updateLeadAction(leadId: string, formData: FormData) {
     if (formData.has('notes')) lead.notes = formData.get('notes') as string;
 
     lead.updated_at = new Date().toISOString();
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ACTUALIZAR_PROSPECTO',
       'lead',
@@ -145,14 +145,14 @@ export async function deleteLeadAction(leadId: string) {
       return { success: false, error: 'Solo Administradores y Gerentes pueden eliminar prospectos.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const index = db.leads.findIndex((l) => l.id === leadId && l.organization_id === session.organization_id);
     if (index === -1) return { success: false, error: 'Prospecto no encontrado' };
 
     const deleted = db.leads.splice(index, 1)[0];
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ELIMINAR_PROSPECTO',
       'lead',
@@ -181,7 +181,7 @@ export async function convertLeadAction(leadId: string, options: {
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const lead = db.leads.find((l) => l.id === leadId && l.organization_id === session.organization_id);
     if (!lead) return { success: false, error: 'Prospecto no encontrado' };
 
@@ -268,9 +268,9 @@ export async function convertLeadAction(leadId: string, options: {
     lead.converted_client_id = clientId;
     lead.updated_at = now;
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CONVERTIR_PROSPECTO',
       'lead',
@@ -315,7 +315,7 @@ export async function importLeadsCsvAction(leadsToImport: CsvLeadRow[]) {
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const existingEmails = new Set(
       db.leads
         .filter((l) => l.organization_id === session.organization_id)
@@ -362,9 +362,9 @@ export async function importLeadsCsvAction(leadsToImport: CsvLeadRow[]) {
       importedCount++;
     }
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'IMPORTAR_PROSPECTOS_CSV',
       'lead',

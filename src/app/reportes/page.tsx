@@ -15,7 +15,7 @@ export default async function ReportesPage() {
     redirect('/dashboard?error=no_autorizado');
   }
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const opportunities = db.opportunities.filter((o) => o.organization_id === session.organization_id);
   const clients = db.clients.filter((c) => c.organization_id === session.organization_id);
   const stages = db.pipeline_stages.filter((s) => s.organization_id === session.organization_id);

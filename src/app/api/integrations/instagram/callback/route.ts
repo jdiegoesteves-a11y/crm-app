@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Guardar o actualizar integración en la base de datos
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const defaultOrg = db.organizations[0];
     const orgId = defaultOrg?.id || 'org-acme-001';
     const now = new Date();
@@ -94,8 +94,8 @@ export async function GET(request: NextRequest) {
       db.integrations.push(integration);
     }
 
-    dbManager.saveDb(db);
-    dbManager.logAudit(
+    await dbManager.saveDb(db);
+    await dbManager.logAudit(
       orgId,
       'INSTAGRAM_CONECTADO',
       'integration',

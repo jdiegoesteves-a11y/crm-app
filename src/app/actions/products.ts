@@ -41,7 +41,7 @@ export async function createProductAction(prevState: unknown, formData: FormData
       return { success: false, error: parsed.error.issues[0]?.message || 'Datos del producto inválidos' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
 
     // Validar duplicado de SKU en la misma organización
     const exists = db.products.some(
@@ -71,9 +71,9 @@ export async function createProductAction(prevState: unknown, formData: FormData
     };
 
     db.products.unshift(newProduct);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CREAR_PRODUCTO',
       'product',
@@ -98,13 +98,13 @@ export async function toggleProductStatusAction(productId: string) {
       return { success: false, error: 'No autorizado' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const product = db.products.find((p) => p.id === productId && p.organization_id === session.organization_id);
     if (!product) return { success: false, error: 'Producto no encontrado' };
 
     product.is_active = !product.is_active;
     product.updated_at = new Date().toISOString();
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
     revalidatePath('/catalogo');
     return { success: true, isActive: product.is_active };
@@ -120,7 +120,7 @@ export async function deleteProductAction(productId: string) {
       return { success: false, error: 'Solo Administradores pueden eliminar productos del catálogo.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const index = db.products.findIndex((p) => p.id === productId && p.organization_id === session.organization_id);
     if (index === -1) return { success: false, error: 'Producto no encontrado' };
 
@@ -130,7 +130,7 @@ export async function deleteProductAction(productId: string) {
       // En lugar de borrar físicamente, desactivar para preservar integridad histórica
       const p = db.products[index];
       p.is_active = false;
-      dbManager.saveDb(db);
+      await dbManager.saveDb(db);
       return {
         success: true,
         message: 'El producto está asociado a cotizaciones históricas. Se ha desactivado en su lugar para mantener la integridad.',
@@ -138,9 +138,9 @@ export async function deleteProductAction(productId: string) {
     }
 
     const deleted = db.products.splice(index, 1)[0];
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ELIMINAR_PRODUCTO',
       'product',

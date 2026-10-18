@@ -19,7 +19,7 @@ export default async function UsuariosConfigPage() {
     redirect('/dashboard?error=no_autorizado');
   }
 
-  const db = dbManager.getDb();
+  const db = await dbManager.getDb();
   const profiles = db.profiles
     .filter((p) => p.organization_id === session.organization_id)
     .map(({ password_hash, ...rest }) => rest as any);

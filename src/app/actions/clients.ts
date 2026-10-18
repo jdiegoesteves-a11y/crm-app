@@ -47,7 +47,7 @@ export async function createClientAction(prevState: unknown, formData: FormData)
       return { success: false, error: parsed.error.issues[0]?.message || 'Datos del cliente inválidos' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
 
     // Validar duplicado de RUC / Identificación en la misma organización
     const exists = db.clients.some(
@@ -81,9 +81,9 @@ export async function createClientAction(prevState: unknown, formData: FormData)
     };
 
     db.clients.unshift(newClient);
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'CREAR_CLIENTE',
       'client',
@@ -107,7 +107,7 @@ export async function updateClientAction(clientId: string, formData: FormData) {
     if (!session) return { success: false, error: 'Sesión no iniciada' };
     if (session.role === 'consulta') return { success: false, error: 'Acceso de solo lectura' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const client = db.clients.find((c) => c.id === clientId && c.organization_id === session.organization_id);
     if (!client) return { success: false, error: 'Cliente no encontrado' };
 
@@ -125,9 +125,9 @@ export async function updateClientAction(clientId: string, formData: FormData) {
     if (formData.has('notes')) client.notes = formData.get('notes') as string;
 
     client.updated_at = new Date().toISOString();
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ACTUALIZAR_CLIENTE',
       'client',
@@ -149,7 +149,7 @@ export async function addClientNoteAction(clientId: string, noteText: string) {
     const session = await getSession();
     if (!session) return { success: false, error: 'Sesión no iniciada' };
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const client = db.clients.find((c) => c.id === clientId && c.organization_id === session.organization_id);
     if (!client) return { success: false, error: 'Cliente no encontrado' };
 
@@ -158,7 +158,7 @@ export async function addClientNoteAction(clientId: string, noteText: string) {
     client.notes = client.notes ? `${client.notes}\n\n${newEntry}` : newEntry;
     client.updated_at = new Date().toISOString();
 
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
     revalidatePath(`/clientes/${clientId}`);
     return { success: true };
@@ -174,14 +174,14 @@ export async function deleteClientAction(clientId: string) {
       return { success: false, error: 'Solo Administradores y Gerentes pueden eliminar clientes.' };
     }
 
-    const db = dbManager.getDb();
+    const db = await dbManager.getDb();
     const index = db.clients.findIndex((c) => c.id === clientId && c.organization_id === session.organization_id);
     if (index === -1) return { success: false, error: 'Cliente no encontrado' };
 
     const deleted = db.clients.splice(index, 1)[0];
-    dbManager.saveDb(db);
+    await dbManager.saveDb(db);
 
-    dbManager.logAudit(
+    await dbManager.logAudit(
       session.organization_id,
       'ELIMINAR_CLIENTE',
       'client',
