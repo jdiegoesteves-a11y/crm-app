@@ -13,6 +13,7 @@ import {
   Calendar,
   Layers,
   FileSpreadsheet,
+  FolderArchive,
   BarChart3,
   Settings,
   ChevronLeft,
@@ -49,6 +50,7 @@ export function Sidebar({ user }: SidebarProps) {
     { label: 'Calendario', href: '/calendario', icon: Calendar },
     { label: 'Catálogo', href: '/catalogo', icon: Layers },
     { label: 'Cotizaciones', href: '/cotizaciones', icon: FileSpreadsheet },
+    { label: 'Documentos', href: '/documentos', icon: FolderArchive },
     ...(user.role === 'admin' || user.role === 'gerente'
       ? [{ label: 'Reportes', href: '/reportes', icon: BarChart3 }]
       : []),

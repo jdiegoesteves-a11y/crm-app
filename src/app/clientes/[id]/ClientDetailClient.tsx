@@ -497,27 +497,77 @@ export function ClientDetailClient({
         {activeTab === 'cotizaciones' && (
           <div className="crm-card p-6">
             <div className="flex items-center justify-between pb-3 border-b border-[#30404E] mb-4">
-              <h3 className="text-sm font-bold text-[#F4F7FA]">Historial de Cotizaciones Emitidas</h3>
-              <Link href="/cotizaciones" className="text-xs text-[#28B8AA] hover:underline font-semibold">
-                Ver todas &rarr;
-              </Link>
+              <div>
+                <h3 className="text-sm font-bold text-[#F4F7FA]">Historial de Cotizaciones Emitidas</h3>
+                <p className="text-[11px] text-[#A5B2C1]">Cotizaciones y propuestas económicas registradas para este cliente.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/cotizaciones/nueva?clientId=${client.id}`}
+                  className="crm-button-primary text-xs py-1.5 px-3 flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Nueva Cotización</span>
+                </Link>
+                <Link href="/cotizaciones" className="text-xs text-[#28B8AA] hover:underline font-semibold ml-2">
+                  Ver todas &rarr;
+                </Link>
+              </div>
             </div>
 
             {quotes.length === 0 ? (
-              <p className="text-xs text-[#A5B2C1] py-4 text-center">No se han emitido cotizaciones para este cliente.</p>
+              <p className="text-xs text-[#A5B2C1] py-8 text-center">
+                No se han emitido cotizaciones para este cliente.{' '}
+                <Link
+                  href={`/cotizaciones/nueva?clientId=${client.id}`}
+                  className="text-[#28B8AA] hover:underline font-semibold"
+                >
+                  Crear la primera cotización
+                </Link>
+              </p>
             ) : (
-              <div className="space-y-2 text-xs">
+              <div className="space-y-2.5 text-xs">
                 {quotes.map((q) => (
-                  <div key={q.id} className="p-3 rounded-lg bg-[#202C39] flex items-center justify-between border border-[#30404E]">
+                  <div
+                    key={q.id}
+                    className="p-3 rounded-lg bg-[#202C39] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-[#30404E] hover:border-[#28B8AA]/40 transition-colors"
+                  >
                     <div>
-                      <span className="font-bold font-mono text-[#28B8AA]">{q.quote_number}</span>
-                      <span className="text-[#A5B2C1] ml-3">Emitida: {q.issue_date}</span>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/cotizaciones/${q.id}`}
+                          className="font-bold font-mono text-[#28B8AA] hover:underline"
+                        >
+                          {q.quote_number}
+                        </Link>
+                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-[#34C48A]/15 text-[#34C48A]">
+                          {q.status}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-[#A5B2C1] mt-1">
+                        Emisión: {q.issue_date} • Vence: {q.valid_until}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-bold text-[#F4F7FA]">${Number(q.grand_total).toLocaleString()} USD</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#34C48A]/15 text-[#34C48A]">
-                        {q.status}
+                    <div className="flex items-center justify-between sm:justify-end gap-3">
+                      <span className="font-bold font-mono text-[#F4F7FA]">
+                        ${Number(q.grand_total).toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
                       </span>
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          href={`/cotizaciones/${q.id}`}
+                          className="px-2 py-1 rounded bg-[#151F2A] hover:bg-[#30404E] text-[#A5B2C1] hover:text-[#F4F7FA] text-[11px] font-semibold transition-colors"
+                        >
+                          Ver
+                        </Link>
+                        <a
+                          href={`/api/quotes/${q.id}/pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2 py-1 rounded bg-[#28B8AA]/15 hover:bg-[#28B8AA]/25 text-[#28B8AA] text-[11px] font-semibold transition-colors"
+                        >
+                          PDF
+                        </a>
+                      </div>
                     </div>
                   </div>
                 ))}

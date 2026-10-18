@@ -190,6 +190,21 @@ export interface Quote {
   updated_at: string;
 }
 
+export type DocumentEntityType = 'client' | 'opportunity' | 'quote' | 'general';
+
+export interface DocumentAttachment {
+  id: string;
+  organization_id: string;
+  uploaded_by: string;
+  entity_type: DocumentEntityType;
+  entity_id?: string;
+  file_name: string;
+  file_path: string;
+  file_size: number; // en bytes
+  mime_type: string;
+  created_at: string;
+}
+
 export interface AuditLog {
   id: string;
   organization_id: string;

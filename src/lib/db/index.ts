@@ -13,6 +13,7 @@ import {
   Product,
   Quote,
   QuoteItem,
+  DocumentAttachment,
   AuditLog,
 } from '@/types/database';
 
@@ -28,6 +29,7 @@ export interface DatabaseSchema {
   products: Product[];
   quotes: Quote[];
   quote_items: QuoteItem[];
+  documents: DocumentAttachment[];
   audit_logs: AuditLog[];
 }
 
@@ -533,6 +535,7 @@ function getInitialSeedData(): DatabaseSchema {
     products,
     quotes,
     quote_items,
+    documents: [],
     audit_logs,
   };
 }
@@ -558,6 +561,10 @@ class DatabaseManager {
       const content = fs.readFileSync(DB_FILE, 'utf-8');
       this.cache = JSON.parse(content) as DatabaseSchema;
     }
+    if (!this.cache.products) this.cache.products = [];
+    if (!this.cache.quotes) this.cache.quotes = [];
+    if (!this.cache.quote_items) this.cache.quote_items = [];
+    if (!this.cache.documents) this.cache.documents = [];
     return this.cache;
   }
 
