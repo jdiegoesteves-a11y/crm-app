@@ -228,3 +228,71 @@ export interface SessionUser {
   full_name: string;
   role: UserRole;
 }
+
+// ==========================================
+// CANALES OMNICANAL Y MENSAJERÍA DIRECTA
+// ==========================================
+export type ChannelProvider = 'instagram' | 'whatsapp' | 'messenger';
+export type IntegrationStatus = 'conectado' | 'desconectado' | 'error' | 'pendiente';
+export type ConversationStatus = 'sin_asignar' | 'pendiente' | 'en_atencion' | 'resuelta';
+export type MessageSenderType = 'contact' | 'agent' | 'system';
+export type MessageDeliveryStatus = 'pendiente' | 'enviado' | 'entregado' | 'leido' | 'fallido';
+export type MediaType = 'image' | 'video' | 'audio' | 'document' | 'none';
+
+export interface ChannelIntegration {
+  id: string;
+  organization_id: string;
+  provider: ChannelProvider;
+  app_id: string;
+  app_name?: string;
+  account_id?: string; // Instagram User ID
+  account_username?: string; // @username
+  access_token?: string; // Token de larga duración
+  token_expires_at?: string;
+  status: IntegrationStatus;
+  webhook_verified: boolean;
+  webhook_url?: string;
+  last_sync_at?: string;
+  last_error?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  organization_id: string;
+  channel: ChannelProvider;
+  external_id: string; // ID del hilo o remitente (IGSID)
+  contact_external_id: string; // IGSID en Instagram
+  contact_name?: string;
+  contact_username?: string;
+  contact_avatar_url?: string;
+  lead_id?: string;
+  client_id?: string;
+  assigned_to?: string; // Profile ID
+  status: ConversationStatus;
+  last_message_text: string;
+  last_message_at: string;
+  unread_count: number;
+  window_expires_at?: string; // Límite de 24 horas de Meta
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  organization_id: string;
+  external_id?: string; // Meta message ID (mid) para idempotencia
+  sender_type: MessageSenderType;
+  sender_id?: string; // Profile ID si es agente, IGSID si es cliente
+  sender_name: string;
+  content: string;
+  media_url?: string;
+  media_type: MediaType;
+  status: MessageDeliveryStatus;
+  error_details?: string;
+  is_internal_note: boolean;
+  created_at: string;
+}

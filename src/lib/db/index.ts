@@ -14,6 +14,9 @@ import {
   Quote,
   QuoteItem,
   DocumentAttachment,
+  ChannelIntegration,
+  Conversation,
+  ChatMessage,
   AuditLog,
 } from '@/types/database';
 
@@ -30,6 +33,9 @@ export interface DatabaseSchema {
   quotes: Quote[];
   quote_items: QuoteItem[];
   documents: DocumentAttachment[];
+  integrations: ChannelIntegration[];
+  conversations: Conversation[];
+  messages: ChatMessage[];
   audit_logs: AuditLog[];
 }
 
@@ -536,6 +542,9 @@ function getInitialSeedData(): DatabaseSchema {
     quotes,
     quote_items,
     documents: [],
+    integrations: [],
+    conversations: [],
+    messages: [],
     audit_logs,
   };
 }
@@ -557,14 +566,21 @@ class DatabaseManager {
 
   public getDb(): DatabaseSchema {
     this.ensureDbExists();
-    if (!this.cache) {
+    try {
       const content = fs.readFileSync(DB_FILE, 'utf-8');
       this.cache = JSON.parse(content) as DatabaseSchema;
+    } catch {
+      if (!this.cache) {
+        this.cache = getInitialSeedData();
+      }
     }
     if (!this.cache.products) this.cache.products = [];
     if (!this.cache.quotes) this.cache.quotes = [];
     if (!this.cache.quote_items) this.cache.quote_items = [];
     if (!this.cache.documents) this.cache.documents = [];
+    if (!this.cache.integrations) this.cache.integrations = [];
+    if (!this.cache.conversations) this.cache.conversations = [];
+    if (!this.cache.messages) this.cache.messages = [];
     return this.cache;
   }
 

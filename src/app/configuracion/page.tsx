@@ -105,6 +105,41 @@ export default async function ConfiguracionPage() {
           </div>
         </div>
 
+        {/* Sección de Integraciones Oficiales */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-bold text-[#F4F7FA]">Integraciones y Canales Conectados</h2>
+            <span className="text-[10px] text-[#A5B2C1]">Meta for Developers</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Link
+              href="/configuracion/integraciones/instagram"
+              className="crm-card p-5 hover:border-[#28B8AA] transition-all group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#F09433] via-[#E6683C] to-[#BC1888] flex items-center justify-center text-white font-bold text-xs shadow-md shadow-[#E6683C]/20">
+                    IG
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#28B8AA]/15 text-[#28B8AA] border border-[#28B8AA]/30">
+                    App ID: 110721452239193
+                  </span>
+                </div>
+                <h3 className="text-sm font-bold text-[#F4F7FA] group-hover:text-[#28B8AA] transition-colors">
+                  Instagram Direct Messaging
+                </h3>
+                <p className="text-xs text-[#A5B2C1] mt-1 leading-relaxed">
+                  Conexión oficial con Instagram Login y Webhooks para recepción y respuesta de DMs con vinculación automática de prospectos.
+                </p>
+              </div>
+              <div className="text-xs font-semibold text-[#28B8AA] mt-4 flex items-center gap-1">
+                Configurar y verificar conexión &rarr;
+              </div>
+            </Link>
+          </div>
+        </div>
+
         {/* Bitácora de Auditoría Inmutable */}
         <div className="crm-card p-6">
           <div className="flex items-center justify-between pb-4 border-b border-[#30404E] mb-4">

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Kanban,
+  MessageSquare,
   UserCheck,
   Building2,
   Users,
@@ -43,6 +44,7 @@ export function Sidebar({ user }: SidebarProps) {
   const navItems = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Embudo Comercial', href: '/embudo', icon: Kanban },
+    { label: 'Mensajes', href: '/mensajes', icon: MessageSquare },
     { label: 'Prospectos', href: '/prospectos', icon: UserCheck },
     { label: 'Clientes', href: '/clientes', icon: Building2 },
     { label: 'Contactos', href: '/contactos', icon: Users },
