@@ -1,16 +1,26 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Bell, Building, Shield, LogOut, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Bell, Building, Shield, LogOut, CheckCircle2, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
 import { SessionUser } from '@/types/database';
 import { logoutAction } from '@/app/actions/auth';
+
+export interface UrgentActivityNotification {
+  id: string;
+  title: string;
+  due_date: string;
+  type: string;
+  is_overdue: boolean;
+}
 
 interface TopbarProps {
   user: SessionUser;
   unreadActivitiesCount?: number;
+  urgentActivities?: UrgentActivityNotification[];
 }
 
-export function Topbar({ user, unreadActivitiesCount = 2 }: TopbarProps) {
+export function Topbar({ user, unreadActivitiesCount = 0, urgentActivities = [] }: TopbarProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -18,6 +28,8 @@ export function Topbar({ user, unreadActivitiesCount = 2 }: TopbarProps) {
     await logoutAction();
     window.location.href = '/login';
   };
+
+  const count = unreadActivitiesCount || urgentActivities.length;
 
   return (
     <header className="h-16 bg-[#151F2A] border-b border-[#30404E] px-6 flex items-center justify-between sticky top-0 z-30">
@@ -50,18 +62,18 @@ export function Topbar({ user, unreadActivitiesCount = 2 }: TopbarProps) {
 
       {/* Acciones de Usuario y Notificaciones */}
       <div className="flex items-center gap-3">
-        {/* Campana de Notificaciones */}
+        {/* Campana de Notificaciones de Actividades */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 rounded-lg bg-[#202C39] text-[#A5B2C1] hover:text-[#F4F7FA] hover:border-[#28B8AA] border border-[#30404E] transition-colors"
-            title="Actividades y Alertas"
+            className="relative p-2 rounded-lg bg-[#202C39] text-[#A5B2C1] hover:text-[#F4F7FA] hover:border-[#28B8AA] border border-[#30404E] transition-colors cursor-pointer"
+            title="Actividades y Alertas de Seguimiento"
             aria-label="Notificaciones"
           >
             <Bell className="w-4 h-4" />
-            {unreadActivitiesCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#F0B454] text-[#0B1118] text-[10px] font-bold rounded-full flex items-center justify-center">
-                {unreadActivitiesCount}
+            {count > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#F0B454] text-[#0B1118] text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                {count}
               </span>
             )}
           </button>
@@ -71,20 +83,46 @@ export function Topbar({ user, unreadActivitiesCount = 2 }: TopbarProps) {
               <div className="flex items-center justify-between pb-3 border-b border-[#30404E]">
                 <span className="text-xs font-semibold text-[#F4F7FA]">Actividades Pendientes</span>
                 <span className="text-[10px] bg-[#F0B454]/20 text-[#F0B454] px-2 py-0.5 rounded font-bold">
-                  {unreadActivitiesCount} urgentes
+                  {count} urgentes
                 </span>
               </div>
-              <div className="mt-3 space-y-2.5 text-xs">
-                <div className="p-2.5 rounded-lg bg-[#202C39] border-l-2 border-[#F0B454]">
-                  <p className="font-semibold text-[#F4F7FA]">Llamada con Roberto Gómez</p>
-                  <p className="text-[11px] text-[#A5B2C1] mt-0.5">Seguimiento de cotización TechSolutions</p>
-                  <span className="text-[10px] text-[#F0B454] font-medium mt-1 inline-block">Vence hoy a las 16:00</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-[#202C39] border-l-2 border-[#28B8AA]">
-                  <p className="font-semibold text-[#F4F7FA]">Cierre contractual Corporación Favorita</p>
-                  <p className="text-[11px] text-[#A5B2C1] mt-0.5">Reunión con Andrés Noboa</p>
-                  <span className="text-[10px] text-[#28B8AA] font-medium mt-1 inline-block">Mañana 10:00</span>
-                </div>
+
+              <div className="mt-3 space-y-2 text-xs max-h-60 overflow-y-auto">
+                {urgentActivities.length === 0 ? (
+                  <p className="text-xs text-[#A5B2C1] py-3 text-center">No tiene actividades pendientes para hoy.</p>
+                ) : (
+                  urgentActivities.map((act) => (
+                    <div
+                      key={act.id}
+                      className={`p-2.5 rounded-lg border-l-2 bg-[#202C39] ${
+                        act.is_overdue ? 'border-[#F17474]' : 'border-[#28B8AA]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-[#F4F7FA] truncate">{act.title}</span>
+                        <span className="text-[9px] uppercase font-bold text-[#A5B2C1] ml-2 shrink-0">{act.type}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] text-[#A5B2C1] mt-1">
+                        <Clock className="w-3 h-3 text-[#28B8AA]" />
+                        <span>{new Date(act.due_date).toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                        {act.is_overdue && (
+                          <span className="text-[#F17474] font-bold ml-1">(Vencida)</span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-3 mt-3 border-t border-[#30404E] text-center">
+                <Link
+                  href="/actividades"
+                  onClick={() => setShowNotifications(false)}
+                  className="text-xs text-[#28B8AA] hover:underline font-semibold flex items-center justify-center gap-1"
+                >
+                  <span>Ver todas las actividades</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </div>
           )}
@@ -94,7 +132,7 @@ export function Topbar({ user, unreadActivitiesCount = 2 }: TopbarProps) {
         <div className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2.5 p-1.5 rounded-lg bg-[#202C39] border border-[#30404E] hover:border-[#28B8AA] transition-colors"
+            className="flex items-center gap-2.5 p-1.5 rounded-lg bg-[#202C39] border border-[#30404E] hover:border-[#28B8AA] transition-colors cursor-pointer"
           >
             <div className="w-7 h-7 rounded-full bg-[#28B8AA]/20 text-[#28B8AA] font-bold text-xs flex items-center justify-center">
               {user.full_name
@@ -123,7 +161,7 @@ export function Topbar({ user, unreadActivitiesCount = 2 }: TopbarProps) {
               <div className="pt-2">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-[#F17474] hover:bg-[#F17474]/10 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-[#F17474] hover:bg-[#F17474]/10 rounded-lg transition-colors cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                   Cerrar Sesión Segura
