@@ -1,11 +1,11 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
+import { dbManager } from '@/lib/db';
 import { AppShell } from '@/components/layout/AppShell';
-import { BarChart3 } from 'lucide-react';
+import { ReportsClient } from './ReportsClient';
 
 export const dynamic = 'force-dynamic';
-
 
 export default async function ReportesPage() {
   const session = await getSession();
@@ -15,29 +15,27 @@ export default async function ReportesPage() {
     redirect('/dashboard?error=no_autorizado');
   }
 
+  const db = dbManager.getDb();
+  const opportunities = db.opportunities.filter((o) => o.organization_id === session.organization_id);
+  const clients = db.clients.filter((c) => c.organization_id === session.organization_id);
+  const stages = db.pipeline_stages.filter((s) => s.organization_id === session.organization_id);
+  const quotes = db.quotes.filter((q) => q.organization_id === session.organization_id);
+  const users = db.profiles.filter((u) => u.organization_id === session.organization_id);
+  const activities = db.activities.filter((a) => a.organization_id === session.organization_id);
+  const auditLogs = db.audit_logs.filter((l) => l.organization_id === session.organization_id);
+
   return (
     <AppShell user={session}>
-      <div className="space-y-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-[#F4F7FA]">Reportes y Analítica Comercial</h1>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#F0B454]/15 text-[#F0B454] border border-[#F0B454]/30">
-              Fase 5 Inteligencia
-            </span>
-          </div>
-          <p className="text-xs text-[#A5B2C1] mt-1">
-            Métricas de rendimiento por vendedor, proyecciones comerciales y exportación analítica.
-          </p>
-        </div>
-
-        <div className="crm-card p-12 text-center">
-          <BarChart3 className="w-12 h-12 text-[#28B8AA] mx-auto mb-4" />
-          <h2 className="text-base font-bold text-[#F4F7FA]">Módulo de Inteligencia Comercial y Reportes</h2>
-          <p className="text-xs text-[#A5B2C1] max-w-md mx-auto mt-2 leading-relaxed">
-            Programado para implementación en la <strong>Fase 5 (Inteligencia Comercial)</strong> con gráficos interactivos Recharts, filtros temporales y exportaciones a CSV y PDF.
-          </p>
-        </div>
-      </div>
+      <ReportsClient
+        opportunities={opportunities}
+        clients={clients}
+        stages={stages}
+        quotes={quotes}
+        users={users}
+        activities={activities}
+        auditLogs={auditLogs}
+        currentUser={session}
+      />
     </AppShell>
   );
 }
