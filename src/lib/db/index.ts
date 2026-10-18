@@ -612,19 +612,18 @@ class DatabaseManager {
     if (isSupabaseConfigured) {
       const data = await readFromSupabase<DatabaseSchema>();
       if (data) return this.normalize(data);
-      // Primera vez: seeder inicial → escribir en Supabase
-      const seed = getInitialSeedData();
-      await writeToSupabase(seed);
-      return seed;
+      // Primera vez o sin datos en Supabase: usar base local y sincronizar
+      const local = this.normalize(this.readLocalDb());
+      await writeToSupabase(local);
+      return local;
     }
     return this.normalize(this.readLocalDb());
   }
 
   public async saveDb(data: DatabaseSchema): Promise<void> {
+    this.writeLocalDb(data); // Siempre mantiene copia local de respaldo
     if (isSupabaseConfigured) {
       await writeToSupabase(data);
-    } else {
-      this.writeLocalDb(data);
     }
   }
 

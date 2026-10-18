@@ -361,3 +361,106 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
     return { success: false, error: 'Error al guardar credenciales' };
   }
 }
+
+/**
+ * Simula la recepción de un mensaje de prueba de Instagram en el CRM
+ * (Crea conversación, mensaje entrante y prospecto automático)
+ */
+export async function simulateIncomingTestMessageAction(
+  testUsername: string = 'cliente_prueba_ig',
+  testMessageText: string = '¡Hola! Este es un mensaje de prueba desde Instagram. ¿Me pueden enviar más información?'
+) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: 'Sesión no iniciada' };
+
+    const db = await dbManager.getDb();
+    const orgId = session.organization_id;
+    const now = new Date();
+    const testSenderId = 'test_ig_' + Math.floor(100000 + Math.random() * 900000);
+    const windowExpiresAt = new Date(now.getTime() + 24 * 3600 * 1000).toISOString();
+
+    // 1. Crear prospecto (Lead) automático
+    const newLeadId = generateId();
+    const defaultAgent = db.profiles.find((p) => p.organization_id === orgId && (p.role === 'vendedor' || p.role === 'gerente'));
+    
+    const newLead: any = {
+      id: newLeadId,
+      organization_id: orgId,
+      assigned_to: defaultAgent?.id || session.id,
+      first_name: 'Cliente',
+      last_name: `Prueba (@${testUsername})`,
+      company_name: 'Instagram Direct (Test)',
+      email: `${testUsername}@instagram.test`,
+      phone: '+593 99 999 9999',
+      source: 'instagram',
+      interest: 'Demostración de Mensajería Instagram',
+      status: 'nuevo',
+      priority: 'alta',
+      estimated_value: 1200,
+      notes: `[IGSID:${testSenderId}] Mensaje de prueba simulado el ${now.toLocaleString()}`,
+      created_at: now.toISOString(),
+      updated_at: now.toISOString(),
+    };
+    db.leads.unshift(newLead);
+
+    // 2. Crear conversación de Instagram
+    const convId = generateId();
+    const newConv: any = {
+      id: convId,
+      organization_id: orgId,
+      channel: 'instagram',
+      contact_name: `Usuario de Prueba (@${testUsername})`,
+      contact_username: testUsername,
+      contact_external_id: testSenderId,
+      assigned_to: defaultAgent?.id || session.id,
+      lead_id: newLeadId,
+      status: 'abierto',
+      last_message_at: now.toISOString(),
+      unread_count: 1,
+      window_expires_at: windowExpiresAt,
+      created_at: now.toISOString(),
+      updated_at: now.toISOString(),
+    };
+    db.conversations.unshift(newConv);
+
+    // 3. Crear mensaje entrante del cliente
+    const newMsg: any = {
+      id: generateId(),
+      conversation_id: convId,
+      organization_id: orgId,
+      sender_type: 'contact',
+      sender_name: `@${testUsername}`,
+      content: testMessageText,
+      media_type: 'none',
+      status: 'entregado',
+      external_id: 'mid_test_' + Date.now(),
+      is_internal_note: false,
+      created_at: now.toISOString(),
+    };
+    db.messages.push(newMsg);
+
+    await dbManager.saveDb(db);
+
+    await dbManager.logAudit(
+      orgId,
+      'INSTAGRAM_TEST_MESSAGE_SIMULADO',
+      'conversation',
+      convId,
+      `Mensaje de prueba de Instagram recibido de @${testUsername}`
+    );
+
+    revalidatePath('/mensajes');
+    revalidatePath('/dashboard');
+    revalidatePath('/configuracion/integraciones/instagram');
+
+    return { 
+      success: true, 
+      conversationId: convId,
+      leadId: newLeadId,
+      message: 'Mensaje de prueba generado con éxito' 
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Error al generar mensaje de prueba' };
+  }
+}

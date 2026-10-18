@@ -69,7 +69,7 @@ export async function readFromSupabase<T>(): Promise<T | null> {
 /**
  * Escribe el estado completo de la base de datos en Supabase.
  */
-export async function writeToSupabase<T>(state: T): Promise<void> {
+export async function writeToSupabase<T>(state: T): Promise<boolean> {
   try {
     const sb = getSupabaseClient();
     const { error } = await sb.from(CRM_TABLE).upsert(
@@ -83,8 +83,11 @@ export async function writeToSupabase<T>(state: T): Promise<void> {
 
     if (error) {
       console.error('[SupabaseAdapter] Error al escribir:', error.message);
+      return false;
     }
+    return true;
   } catch (err) {
     console.error('[SupabaseAdapter] Error de conexión al escribir:', err);
+    return false;
   }
 }

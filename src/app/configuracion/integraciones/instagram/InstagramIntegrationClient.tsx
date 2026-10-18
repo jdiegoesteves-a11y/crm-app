@@ -20,8 +20,11 @@ import {
   Radio,
   Clock,
   Layers,
+  MessageSquare,
+  Sparkles,
+  Send,
 } from 'lucide-react';
-import { disconnectInstagramAction, manualSaveInstagramTokenAction } from '@/app/actions/messages';
+import { disconnectInstagramAction, manualSaveInstagramTokenAction, simulateIncomingTestMessageAction } from '@/app/actions/messages';
 
 interface InstagramIntegrationClientProps {
   integration: ChannelIntegration | null;
@@ -107,6 +110,30 @@ export function InstagramIntegrationClient({
     }
   };
 
+  const [testLoading, setTestLoading] = useState(false);
+
+  const handleSimulateTestMessage = async () => {
+    setTestLoading(true);
+    try {
+      const res = await simulateIncomingTestMessageAction(
+        integration?.account_username ? `cliente_de_${integration.account_username}` : 'cliente_demo_ig',
+        '¡Hola! Estoy interesado en sus servicios. ¿Me podrían dar una cotización? (Mensaje de Prueba)'
+      );
+      if (res.success) {
+        setFeedback({
+          type: 'success',
+          text: '✅ Mensaje de prueba simulado con éxito. Se creó automáticamente el prospecto y la conversación en la bandeja de entrada.',
+        });
+      } else {
+        setFeedback({ type: 'error', text: res.error || 'Error al simular mensaje' });
+      }
+    } catch {
+      setFeedback({ type: 'error', text: 'Error al enviar simulación' });
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
   const isConnected = integration?.status === 'conectado';
 
   return (
@@ -140,7 +167,28 @@ export function InstagramIntegrationClient({
         </div>
 
         {currentUser.role === 'admin' && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSimulateTestMessage}
+              disabled={testLoading}
+              className="crm-button-secondary text-xs py-2 px-3 flex items-center gap-1.5 text-[#F0B454] hover:text-[#F0B454] border-[#F0B454]/30"
+              title="Crea una conversación y un prospecto de prueba de Instagram"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{testLoading ? 'Simulando...' : 'Simular Mensaje Entrante'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setManualModalOpen(true)}
+              className="crm-button-secondary text-xs py-2 px-3 flex items-center gap-1.5 text-[#28B8AA] hover:text-[#28B8AA] border-[#28B8AA]/30"
+              title="Conectar directamente con Token de prueba de Meta"
+            >
+              <Key className="w-3.5 h-3.5" />
+              <span>Token de Prueba (Sandbox)</span>
+            </button>
+
             {isConnected ? (
               <button
                 onClick={handleDisconnect}
@@ -176,12 +224,67 @@ export function InstagramIntegrationClient({
           ) : (
             <AlertCircle className="w-4 h-4 shrink-0" />
           )}
-          <span>{feedback.text}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span>{feedback.text}</span>
+            {feedback.text.includes('Mensaje de prueba') && (
+              <Link
+                href="/mensajes"
+                className="font-bold underline text-[#34C48A] hover:text-white ml-1 inline-flex items-center gap-1"
+              >
+                <span>Ver en Bandeja de Mensajes</span>
+                <MessageSquare className="w-3.5 h-3.5" />
+              </Link>
+            )}
+          </div>
           <button onClick={() => setFeedback(null)} className="ml-auto text-xs opacity-70">
             ✕
           </button>
         </div>
       )}
+
+      {/* Tarjeta de Pruebas Rápidas (Modo Sandbox) */}
+      <div className="p-4 rounded-xl bg-gradient-to-r from-[#1E293B] to-[#151F2A] border border-[#28B8AA]/40 text-xs space-y-3 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[#28B8AA] font-bold">
+            <Sparkles className="w-4 h-4 text-[#28B8AA]" />
+            <span className="text-sm text-[#F4F7FA]">Centro de Pruebas de Instagram (Modo Sandbox)</span>
+          </div>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#28B8AA]/15 text-[#28B8AA] border border-[#28B8AA]/30">
+            Ambiente Seguro
+          </span>
+        </div>
+        <p className="text-[#A5B2C1] leading-relaxed">
+          Puedes probar el flujo completo de recepción de mensajes, asignación de asesores y creación automática de prospectos sin depender de los permisos de producción de Meta:
+        </p>
+        <div className="flex flex-wrap gap-3 pt-1">
+          <button
+            type="button"
+            onClick={handleSimulateTestMessage}
+            disabled={testLoading}
+            className="crm-button-primary text-xs py-2 px-3.5 flex items-center gap-2"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>{testLoading ? 'Disparando...' : '1. Disparar Mensaje de Prueba al CRM'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setManualModalOpen(true)}
+            className="crm-button-secondary text-xs py-2 px-3.5 flex items-center gap-2 text-[#28B8AA]"
+          >
+            <Key className="w-3.5 h-3.5" />
+            <span>2. Conectar Token de Prueba de Meta</span>
+          </button>
+
+          <Link
+            href="/mensajes"
+            className="crm-button-secondary text-xs py-2 px-3.5 flex items-center gap-2 text-[#F4F7FA]"
+          >
+            <MessageSquare className="w-3.5 h-3.5 text-[#34C48A]" />
+            <span>3. Abrir Bandeja Omnicanal</span>
+          </Link>
+        </div>
+      </div>
 
       {/* Alerta Informativa sobre Modo Desarrollo vs Producción */}
       <div className="p-4 rounded-xl bg-[#202C39] border border-[#30404E] text-xs space-y-2">
