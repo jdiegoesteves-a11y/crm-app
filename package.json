@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node scripts/run-tests.mjs",
+    "backup": "node scripts/backup-db.mjs",
+    "restore": "node scripts/restore-db.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

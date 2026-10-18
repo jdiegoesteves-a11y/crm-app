@@ -33,7 +33,7 @@ export default async function ConfiguracionPage() {
         </div>
 
         {/* Tarjetas de Accesos Rápidos de Configuración */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <Link
             href="/configuracion/usuarios"
             className="crm-card p-5 hover:border-[#28B8AA] transition-all group flex flex-col justify-between"
@@ -80,6 +80,27 @@ export default async function ConfiguracionPage() {
               <div>Moneda: <strong className="text-[#28B8AA]">{org?.currency} (Dólar estadounidense)</strong></div>
               <div>Zona Horaria: <strong className="text-[#F4F7FA]">{org?.timezone}</strong></div>
               <div>IVA Estándar: <strong className="text-[#F4F7FA]">15%</strong></div>
+            </div>
+          </div>
+
+          <div className="crm-card p-5 flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[#F0B454]/15 text-[#F0B454] flex items-center justify-center mb-4">
+                <Database className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-[#F4F7FA]">Respaldos y Seguridad</h3>
+              <p className="text-xs text-[#A5B2C1] mt-1 leading-relaxed">
+                Exportación completa del estado de la base de datos con verificación criptográfica SHA-256.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#30404E]">
+              <a
+                href="/api/backup/download"
+                className="crm-button-primary text-xs py-2 px-3 w-full flex items-center justify-center gap-2"
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span>Descargar Respaldo JSON</span>
+              </a>
             </div>
           </div>
         </div>
