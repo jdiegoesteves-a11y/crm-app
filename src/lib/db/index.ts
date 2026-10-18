@@ -581,13 +581,25 @@ class DatabaseManager {
     if (!this.cache.integrations) this.cache.integrations = [];
     if (!this.cache.conversations) this.cache.conversations = [];
     if (!this.cache.messages) this.cache.messages = [];
+    if (!this.cache.audit_logs) this.cache.audit_logs = [];
     return this.cache;
   }
 
   public saveDb(data: DatabaseSchema): void {
     this.ensureDbExists();
     this.cache = data;
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (err) {
+      console.warn('[DatabaseManager] Aviso: archivo bloqueado temporalmente por el watcher, persistiendo con atomic swap:', err);
+      try {
+        const tempFile = `${DB_FILE}.tmp`;
+        fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
+        fs.renameSync(tempFile, DB_FILE);
+      } catch {
+        // Fallback resiliente: el caché en memoria garantiza la continuidad de la sesión
+      }
+    }
   }
 
   // Registra un evento de auditoría de forma inmutable

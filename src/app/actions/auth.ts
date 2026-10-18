@@ -54,18 +54,21 @@ export async function loginAction(prevState: unknown, formData: FormData) {
       : false;
 
     if (!isPasswordValid) {
-      // Registrar intento fallido en auditoría
-      dbManager.logAudit(
-        profile.organization_id,
-        'INTENTO_LOGIN_FALLIDO',
-        'profile',
-        profile.id,
-        `Contraseña errónea para el usuario ${email}`,
-        { id: profile.id, email: profile.email }
-      );
+      try {
+        dbManager.logAudit(
+          profile.organization_id,
+          'INTENTO_LOGIN_FALLIDO',
+          'profile',
+          profile.id,
+          `Contraseña errónea para el usuario ${email}`,
+          { id: profile.id, email: profile.email }
+        );
+      } catch (e) {
+        console.warn('Aviso: no se pudo escribir log de auditoría:', e);
+      }
       return {
         success: false,
-        error: 'Credenciales inválidas. Verifique su correo o contraseña.',
+        error: 'Credenciales inválidas. Verifique su correo o contraseña (contraseña por defecto: Password123!).',
       };
     }
 
@@ -94,22 +97,28 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     const token = await signSession(sessionUser);
     await setSessionCookie(token);
 
-    // Registrar en bitácora de auditoría
-    dbManager.logAudit(
-      profile.organization_id,
-      'LOGIN_EXITOSO',
-      'profile',
-      profile.id,
-      `Sesión iniciada con rol [${profile.role}]`,
-      { id: profile.id, email: profile.email }
-    );
+    // Registrar en bitácora de auditoría de forma segura
+    try {
+      dbManager.logAudit(
+        profile.organization_id,
+        'LOGIN_EXITOSO',
+        'profile',
+        profile.id,
+        `Sesión iniciada con rol [${profile.role}]`,
+        { id: profile.id, email: profile.email }
+      );
+    } catch (e) {
+      console.warn('Aviso: no se pudo escribir log de auditoría:', e);
+    }
 
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en loginAction:', error);
     return {
       success: false,
-      error: 'Ocurrió un error inesperado al procesar el ingreso. Intente nuevamente.',
+      error: error?.message
+        ? `Error al autenticar: ${error.message}`
+        : 'Ocurrió un error inesperado al procesar el ingreso. Intente nuevamente.',
     };
   }
 }
