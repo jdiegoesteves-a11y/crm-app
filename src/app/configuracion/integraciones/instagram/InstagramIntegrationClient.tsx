@@ -516,7 +516,7 @@ export function InstagramIntegrationClient({
                     type="text"
                     value={manualUsername}
                     onChange={(e) => setManualUsername(e.target.value)}
-                    placeholder="cuenta_demo"
+                    placeholder="novaexa.ec"
                     className="crm-input text-xs w-full"
                   />
                 </div>

@@ -273,7 +273,7 @@ export function MessagesClient({
             <span className="w-2.5 h-2.5 rounded-full bg-[#34C48A] animate-pulse shadow-sm shadow-[#34C48A]" />
             <span className="text-[#F4F7FA] font-bold">Instagram Direct Oficial Operativo:</span>
             <span className="font-mono text-[#28B8AA] bg-[#28B8AA]/15 px-2 py-0.5 rounded border border-[#28B8AA]/25">
-              @{connectedUsername || 'airpods_ec_'}
+              @{connectedUsername || 'novaexa.ec'}
             </span>
             <span className="text-[11px] text-[#A5B2C1] hidden sm:inline">
               • Recepción de mensajes en tiempo real activa

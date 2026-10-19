@@ -316,7 +316,7 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
 
     if (integration) {
       integration.access_token = accessToken.trim();
-      integration.account_username = username.trim() || integration.account_username || 'cuenta_profesional';
+      integration.account_username = username.trim() || integration.account_username || 'novaexa.ec';
       integration.account_id = userId.trim() || integration.account_id || '110721452239193';
       integration.status = 'conectado';
       integration.token_expires_at = expiresAt;
@@ -333,7 +333,7 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
         app_id: defaultAppId,
         app_name: 'CRM Executive-IG',
         account_id: userId.trim() || defaultAppId,
-        account_username: username.trim() || 'cuenta_profesional',
+        account_username: username.trim() || 'novaexa.ec',
         access_token: accessToken.trim(),
         token_expires_at: expiresAt,
         status: 'conectado',
