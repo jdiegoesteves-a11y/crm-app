@@ -168,44 +168,45 @@ export function InstagramIntegrationClient({
 
         {currentUser.role === 'admin' && (
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={handleSimulateTestMessage}
-              disabled={testLoading}
-              className="crm-button-secondary text-xs py-2 px-3 flex items-center gap-1.5 text-[#F0B454] hover:text-[#F0B454] border-[#F0B454]/30"
-              title="Crea una conversación y un prospecto de prueba de Instagram"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{testLoading ? 'Simulando...' : 'Simular Mensaje Entrante'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setManualModalOpen(true)}
-              className="crm-button-secondary text-xs py-2 px-3 flex items-center gap-1.5 text-[#28B8AA] hover:text-[#28B8AA] border-[#28B8AA]/30"
-              title="Conectar directamente con Token de prueba de Meta"
-            >
-              <Key className="w-3.5 h-3.5" />
-              <span>Token de Prueba (Sandbox)</span>
-            </button>
-
             {isConnected ? (
-              <button
-                onClick={handleDisconnect}
-                disabled={loading}
-                className="crm-button-secondary text-xs py-2 px-3.5 flex items-center gap-1.5 text-[#F17474] hover:text-[#F17474]"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Desconectar Cuenta</span>
-              </button>
+              <>
+                <Link
+                  href="/mensajes"
+                  className="crm-button-primary text-xs py-2 px-3.5 flex items-center gap-1.5"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Ir a Bandeja de Mensajes</span>
+                </Link>
+
+                <button
+                  onClick={handleDisconnect}
+                  disabled={loading}
+                  className="crm-button-secondary text-xs py-2 px-3.5 flex items-center gap-1.5 text-[#F17474] hover:text-[#F17474]"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Desconectar Cuenta</span>
+                </button>
+              </>
             ) : (
-              <a
-                href="/api/integrations/instagram/authorize"
-                className="crm-button-primary text-xs py-2 px-4 flex items-center gap-2"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span>Conectar con Instagram Login</span>
-              </a>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setManualModalOpen(true)}
+                  className="crm-button-secondary text-xs py-2 px-3.5 flex items-center gap-1.5 text-[#28B8AA] hover:text-[#28B8AA] border-[#28B8AA]/30"
+                  title="Conectar directamente con Token de Meta"
+                >
+                  <Key className="w-3.5 h-3.5" />
+                  <span>Configurar con Access Token</span>
+                </button>
+
+                <a
+                  href="/api/integrations/instagram/authorize"
+                  className="crm-button-primary text-xs py-2 px-4 flex items-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Conectar con Instagram Login</span>
+                </a>
+              </>
             )}
           </div>
         )}
@@ -224,65 +225,52 @@ export function InstagramIntegrationClient({
           ) : (
             <AlertCircle className="w-4 h-4 shrink-0" />
           )}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span>{feedback.text}</span>
-            {feedback.text.includes('Mensaje de prueba') && (
-              <Link
-                href="/mensajes"
-                className="font-bold underline text-[#34C48A] hover:text-white ml-1 inline-flex items-center gap-1"
-              >
-                <span>Ver en Bandeja de Mensajes</span>
-                <MessageSquare className="w-3.5 h-3.5" />
-              </Link>
-            )}
-          </div>
+          <span>{feedback.text}</span>
           <button onClick={() => setFeedback(null)} className="ml-auto text-xs opacity-70">
             ✕
           </button>
         </div>
       )}
 
-      {/* Tarjeta de Pruebas Rápidas (Modo Sandbox) */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-[#1E293B] to-[#151F2A] border border-[#28B8AA]/40 text-xs space-y-3 shadow-lg">
+      {/* Consola de Operación de Mensajería en Vivo */}
+      <div className="p-4 rounded-xl bg-gradient-to-r from-[#1E293B] to-[#151F2A] border border-[#28B8AA]/30 text-xs space-y-3 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-[#28B8AA] font-bold">
-            <Sparkles className="w-4 h-4 text-[#28B8AA]" />
-            <span className="text-sm text-[#F4F7FA]">Centro de Pruebas de Instagram (Modo Sandbox)</span>
+            <Radio className="w-4 h-4 text-[#34C48A] animate-pulse" />
+            <span className="text-sm text-[#F4F7FA]">Canal de Mensajería Directa Oficial de Instagram</span>
           </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#28B8AA]/15 text-[#28B8AA] border border-[#28B8AA]/30">
-            Ambiente Seguro
+          <span
+            className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+              isConnected
+                ? 'bg-[#34C48A]/15 text-[#34C48A] border-[#34C48A]/30'
+                : 'bg-[#F0B454]/15 text-[#F0B454] border-[#F0B454]/30'
+            }`}
+          >
+            {isConnected ? '● Operativo en Vivo' : '○ Requiere Conexión'}
           </span>
         </div>
         <p className="text-[#A5B2C1] leading-relaxed">
-          Puedes probar el flujo completo de recepción de mensajes, asignación de asesores y creación automática de prospectos sin depender de los permisos de producción de Meta:
+          Los mensajes directos enviados por los clientes a tu cuenta de Instagram se reciben de inmediato a través de los Webhooks de Meta, creando automáticamente la conversación y el prospecto (lead) comercial en tu bandeja de entrada.
         </p>
-        <div className="flex flex-wrap gap-3 pt-1">
-          <button
-            type="button"
-            onClick={handleSimulateTestMessage}
-            disabled={testLoading}
-            className="crm-button-primary text-xs py-2 px-3.5 flex items-center gap-2"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>{testLoading ? 'Disparando...' : '1. Disparar Mensaje de Prueba al CRM'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setManualModalOpen(true)}
-            className="crm-button-secondary text-xs py-2 px-3.5 flex items-center gap-2 text-[#28B8AA]"
-          >
-            <Key className="w-3.5 h-3.5" />
-            <span>2. Conectar Token de Prueba de Meta</span>
-          </button>
-
+        <div className="flex flex-wrap items-center gap-3 pt-1">
           <Link
             href="/mensajes"
-            className="crm-button-secondary text-xs py-2 px-3.5 flex items-center gap-2 text-[#F4F7FA]"
+            className="crm-button-primary text-xs py-2 px-4 flex items-center gap-2"
           >
-            <MessageSquare className="w-3.5 h-3.5 text-[#34C48A]" />
-            <span>3. Abrir Bandeja Omnicanal</span>
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Abrir Bandeja de Mensajería Omnicanal</span>
           </Link>
+
+          {!isConnected && (
+            <button
+              type="button"
+              onClick={() => setManualModalOpen(true)}
+              className="crm-button-secondary text-xs py-2 px-3.5 flex items-center gap-2 text-[#28B8AA]"
+            >
+              <Key className="w-3.5 h-3.5" />
+              <span>Ingresar Token de Acceso</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -476,20 +464,20 @@ export function InstagramIntegrationClient({
               className="text-[#28B8AA] hover:underline flex items-center gap-1 font-semibold"
             >
               <Key className="w-3.5 h-3.5" />
-              <span>Configuración Manual / Token Test</span>
+              <span>Configuración Directa de Token Oficial</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Modal para Token Manual (Sandbox / Test) */}
+      {/* Modal para Token Oficial de Instagram */}
       {manualModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#0B1118]/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="crm-card max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-[#30404E]">
               <div className="flex items-center gap-2">
                 <Key className="w-4 h-4 text-[#28B8AA]" />
-                <h3 className="font-bold text-sm text-[#F4F7FA]">Configuración Manual de Credenciales</h3>
+                <h3 className="font-bold text-sm text-[#F4F7FA]">Configuración Oficial de Credenciales</h3>
               </div>
               <button
                 type="button"
@@ -502,7 +490,7 @@ export function InstagramIntegrationClient({
 
             <form onSubmit={handleManualSave} className="space-y-4 text-xs">
               <p className="text-[#A5B2C1]">
-                Permite registrar directamente un User Access Token generado desde el Graph API Explorer para pruebas de desarrollo.
+                Ingrese el User Access Token de su cuenta de Instagram generado desde Meta for Developers para activar la conexión en vivo.
               </p>
 
               <div>

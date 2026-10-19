@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Conversation,
   ChatMessage,
@@ -51,6 +52,7 @@ interface MessagesClientProps {
   users: Profile[];
   currentUser: SessionUser;
   isInstagramConnected: boolean;
+  connectedUsername?: string;
 }
 
 export function MessagesClient({
@@ -62,12 +64,31 @@ export function MessagesClient({
   users,
   currentUser,
   isInstagramConnected,
+  connectedUsername,
 }: MessagesClientProps) {
+  const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [selectedConvId, setSelectedConvId] = useState<string>(
     initialConversations[0]?.id || ''
   );
+
+  // Sincronizar estado cuando el servidor Next.js actualiza props
+  useEffect(() => {
+    setConversations(initialConversations);
+  }, [initialConversations]);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  // Polling automático cada 4 segundos para actualizar mensajes entrantes en tiempo real
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [router]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
@@ -241,6 +262,28 @@ export function MessagesClient({
             className="font-bold underline hover:text-[#F4F7FA] ml-2 shrink-0"
           >
             Conectar ahora &rarr;
+          </Link>
+        </div>
+      )}
+
+      {/* Banner de Canal Activo en Producción */}
+      {isInstagramConnected && (
+        <div className="px-3.5 py-2 rounded-xl bg-[#28B8AA]/10 border border-[#28B8AA]/30 text-xs flex items-center justify-between text-[#28B8AA] shrink-0 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#34C48A] animate-pulse shadow-sm shadow-[#34C48A]" />
+            <span className="text-[#F4F7FA] font-bold">Instagram Direct Oficial Operativo:</span>
+            <span className="font-mono text-[#28B8AA] bg-[#28B8AA]/15 px-2 py-0.5 rounded border border-[#28B8AA]/25">
+              @{connectedUsername || 'airpods_ec_'}
+            </span>
+            <span className="text-[11px] text-[#A5B2C1] hidden sm:inline">
+              • Recepción de mensajes en tiempo real activa
+            </span>
+          </div>
+          <Link
+            href="/configuracion/integraciones/instagram"
+            className="text-[11px] font-semibold text-[#A5B2C1] hover:text-[#F4F7FA] underline ml-2 shrink-0"
+          >
+            Ajustes del Canal
           </Link>
         </div>
       )}

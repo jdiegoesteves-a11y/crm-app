@@ -21,9 +21,11 @@ export default async function MensajesPage() {
   const opportunities = db.opportunities.filter((o) => o.organization_id === orgId);
   const users = db.profiles.filter((u) => u.organization_id === orgId);
 
-  const isInstagramConnected = Boolean(
-    db.integrations?.some((i) => i.organization_id === orgId && i.provider === 'instagram' && i.status === 'conectado')
+  const igIntegration = db.integrations?.find(
+    (i) => i.organization_id === orgId && i.provider === 'instagram' && i.status === 'conectado'
   );
+  const isInstagramConnected = Boolean(igIntegration);
+  const connectedUsername = igIntegration?.account_username;
 
   return (
     <AppShell user={session}>
@@ -36,6 +38,7 @@ export default async function MensajesPage() {
         users={users}
         currentUser={session}
         isInstagramConnected={isInstagramConnected}
+        connectedUsername={connectedUsername}
       />
     </AppShell>
   );
