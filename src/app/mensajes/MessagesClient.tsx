@@ -115,16 +115,24 @@ export function MessagesClient({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [convMessages.length, selectedConvId]);
 
-  // Filtrado de conversaciones
+  // Filtrado de conversaciones a prueba de nulos
   const filteredConversations = conversations.filter((c) => {
-    const term = searchTerm.toLowerCase();
-    const matchesSearch =
-      (c.contact_name?.toLowerCase().includes(term) ?? false) ||
-      (c.contact_username?.toLowerCase().includes(term) ?? false) ||
-      c.contact_external_id.includes(term) ||
-      c.last_message_text.toLowerCase().includes(term);
-
+    const term = (searchTerm || '').toLowerCase().trim();
     const matchesStatus = statusFilter === 'todos' || c.status === statusFilter;
+
+    if (!term) return matchesStatus;
+
+    const name = (c.contact_name || '').toLowerCase();
+    const username = (c.contact_username || '').toLowerCase();
+    const externalId = (c.contact_external_id || '').toLowerCase();
+    const lastMsg = (c.last_message_text || '').toLowerCase();
+
+    const matchesSearch =
+      name.includes(term) ||
+      username.includes(term) ||
+      externalId.includes(term) ||
+      lastMsg.includes(term);
+
     return matchesSearch && matchesStatus;
   });
 

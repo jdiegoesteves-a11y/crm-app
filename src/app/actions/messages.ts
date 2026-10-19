@@ -470,6 +470,7 @@ export async function simulateIncomingTestMessageAction(
       assigned_to: defaultAgent?.id || session.id,
       lead_id: newLeadId,
       status: 'abierto',
+      last_message_text: testMessageText,
       last_message_at: now.toISOString(),
       unread_count: 1,
       window_expires_at: windowExpiresAt,

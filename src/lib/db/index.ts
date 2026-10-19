@@ -603,6 +603,15 @@ class DatabaseManager {
     if (!db.conversations) db.conversations = [];
     if (!db.messages) db.messages = [];
     if (!db.audit_logs) db.audit_logs = [];
+
+    // Garantizar que las conversaciones tengan campos de texto no nulos
+    db.conversations.forEach((c) => {
+      if (!c.last_message_text) c.last_message_text = '';
+      if (!c.contact_name) c.contact_name = '';
+      if (!c.contact_username) c.contact_username = '';
+      if (!c.contact_external_id) c.contact_external_id = '';
+    });
+
     return db;
   }
 
