@@ -36,7 +36,7 @@ export class InstagramClient {
   private appSecret: string;
 
   constructor() {
-    this.appId = process.env.INSTAGRAM_APP_ID || '1107212452239193';
+    this.appId = process.env.INSTAGRAM_APP_ID || '110721452239193';
     this.appSecret = process.env.INSTAGRAM_APP_SECRET || '';
   }
 
@@ -68,7 +68,7 @@ export class InstagramClient {
       state: state,
     });
 
-    return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
+    return `https://api.instagram.com/oauth/authorize?${params.toString()}`;
   }
 
   /**

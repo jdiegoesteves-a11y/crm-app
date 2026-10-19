@@ -379,7 +379,7 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
       integration.last_error = undefined;
       integration.updated_at = now.toISOString();
     } else {
-      const defaultAppId = process.env.INSTAGRAM_APP_ID || '1107212452239193';
+      const defaultAppId = process.env.INSTAGRAM_APP_ID || '110721452239193';
       integration = {
         id: generateId(),
         organization_id: session.organization_id,
