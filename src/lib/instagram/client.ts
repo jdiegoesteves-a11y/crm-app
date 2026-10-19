@@ -181,7 +181,30 @@ export class InstagramClient {
     accessToken: string
   ): Promise<SendMessageResult> {
     try {
-      const endpoint = `${GRAPH_API_BASE}/me/messages`;
+      // 1. Detectar si es el contacto simulado de demostración inicial
+      if (
+        recipientIgsid === '17841400123456789' ||
+        recipientIgsid.startsWith('mock_') ||
+        recipientIgsid.startsWith('demo_')
+      ) {
+        return {
+          success: false,
+          error:
+            'Este es un contacto simulado de prueba (ID: ' +
+            recipientIgsid +
+            '). Meta exige que un usuario real de Instagram escriba primero a @novaexa.ec para abrir una conversación legítima y poder responderle.',
+          code: 400,
+        };
+      }
+
+      // 2. Determinar endpoint y headers según el formato del token
+      // Tokens nativos de Instagram inician con "IGAA..." o "IGA..." -> graph.instagram.com
+      // Tokens de Facebook Graph API inician con "EAAT..." o "EAA..." -> graph.facebook.com
+      const isFbToken = accessToken.startsWith('EAA');
+      const endpoint = isFbToken
+        ? 'https://graph.facebook.com/v21.0/me/messages'
+        : `${GRAPH_API_BASE}/me/messages`;
+
       const body = {
         recipient: {
           id: recipientIgsid,
@@ -204,9 +227,32 @@ export class InstagramClient {
 
       if (!res.ok || data.error) {
         console.error('[Instagram Send API Error]', data.error);
+        let errorMsg = data.error?.message || 'Error devuelto por la API de Meta';
+
+        // Traducción e interpretación amigable de errores comunes de Meta
+        if (
+          data.error?.code === 190 ||
+          errorMsg.includes('Cannot parse access token') ||
+          errorMsg.includes('Session has expired')
+        ) {
+          if (isFbToken) {
+            errorMsg =
+              'El token de Facebook ingresado (EAA...) ha expirado o carece del permiso "instagram_manage_messages". Genere un token nativo de Instagram (IGAA...) o renueve su token con permisos de mensajería en Meta for Developers.';
+          } else {
+            errorMsg =
+              'El token de Instagram ha expirado o no es válido (Código 190). Por favor renuévelo en Configuración > Integraciones.';
+          }
+        } else if (
+          errorMsg.includes('Object with ID') &&
+          errorMsg.includes('does not exist')
+        ) {
+          errorMsg =
+            'El destinatario no existe en Instagram o no ha iniciado una conversación con @novaexa.ec en las últimas 24 horas.';
+        }
+
         return {
           success: false,
-          error: data.error?.message || 'Error devuelto por la API de Meta',
+          error: errorMsg,
           code: data.error?.code,
           subcode: data.error?.error_subcode,
         };

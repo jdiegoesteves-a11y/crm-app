@@ -35,12 +35,14 @@ import {
   UserCheck,
   RefreshCw,
   Zap,
+  Trash2,
 } from 'lucide-react';
 import {
   sendChatMessageAction,
   assignConversationAction,
   updateConversationStatusAction,
   linkConversationToClientAction,
+  deleteConversationAction,
 } from '@/app/actions/messages';
 
 interface MessagesClientProps {
@@ -216,6 +218,25 @@ export function MessagesClient({
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  // Eliminar conversación (para chats demo o antiguos)
+  const handleDeleteConversation = async () => {
+    if (!selectedConvId) return;
+    if (!confirm('¿Desea eliminar esta conversación y todos sus mensajes?')) return;
+    try {
+      const res = await deleteConversationAction(selectedConvId);
+      if (res.success) {
+        setConversations((prev) => prev.filter((c) => c.id !== selectedConvId));
+        setMessages((prev) => prev.filter((m) => m.conversation_id !== selectedConvId));
+        setSelectedConvId('');
+        setFeedback({ type: 'success', text: 'Conversación eliminada con éxito.' });
+      } else {
+        setFeedback({ type: 'error', text: res.error || 'Error al eliminar conversación' });
+      }
+    } catch {
+      setFeedback({ type: 'error', text: 'Error al conectar con el servidor' });
     }
   };
 
@@ -469,8 +490,43 @@ export function MessagesClient({
                     <option value="resuelta">Resuelta</option>
                     <option value="pendiente">Pendiente</option>
                   </select>
+
+                  {['admin', 'gerente'].includes(currentUser.role) && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteConversation}
+                      className="p-1 rounded bg-[#F17474]/15 hover:bg-[#F17474]/25 text-[#F17474] transition-colors"
+                      title="Eliminar conversación"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {/* Banner de Contacto de Demostración */}
+              {(selectedConv.contact_external_id === '17841400123456789' ||
+                selectedConv.contact_external_id.startsWith('test_ig_') ||
+                selectedConv.contact_external_id.startsWith('demo_')) && (
+                <div className="py-2 px-3 text-[11px] bg-[#F0B454]/15 text-[#F0B454] border-b border-[#F0B454]/30 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-[#F0B454]" />
+                    <span className="truncate">
+                      <strong>Contacto de Ejemplo:</strong> Este chat usa un ID simulado ({selectedConv.contact_external_id}). Meta solo permite responder a usuarios reales que escriban a <strong>@novaexa.ec</strong>.
+                    </span>
+                  </div>
+                  {['admin', 'gerente'].includes(currentUser.role) && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteConversation}
+                      className="px-2 py-0.5 rounded bg-[#F17474]/20 hover:bg-[#F17474]/30 text-[#F17474] text-[10px] font-bold shrink-0 transition-colors flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Limpiar</span>
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Banner de Ventana de 24 Horas de Meta */}
               {selectedConv.window_expires_at && (

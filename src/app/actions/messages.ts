@@ -302,8 +302,62 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
       return { success: false, error: 'Solo Administradores pueden configurar credenciales' };
     }
 
-    if (!accessToken.trim()) {
+    const cleanToken = accessToken.trim();
+    if (!cleanToken) {
       return { success: false, error: 'El access token es requerido' };
+    }
+
+    let validatedUsername = username.trim() || 'novaexa.ec';
+    let validatedUserId = userId.trim() || '75685041860';
+
+    // Validación preventiva en tiempo real con servidores de Meta
+    try {
+      if (cleanToken.startsWith('IG')) {
+        const verifyRes = await fetch(
+          `https://graph.instagram.com/v21.0/me?fields=user_id,username&access_token=${cleanToken}`
+        );
+        const verifyData = await verifyRes.json();
+        if (verifyData.error) {
+          if (verifyData.error.code === 190) {
+            return {
+              success: false,
+              error: `El token de Instagram no es válido o ha expirado (Error 190: ${verifyData.error.message}). Por favor genere un token nuevo.`,
+            };
+          }
+        } else {
+          if (verifyData.username) validatedUsername = verifyData.username;
+          if (verifyData.user_id || verifyData.id) validatedUserId = String(verifyData.user_id || verifyData.id);
+        }
+      } else if (cleanToken.startsWith('EAA')) {
+        const permRes = await fetch(
+          `https://graph.facebook.com/v21.0/me/permissions?access_token=${cleanToken}`
+        );
+        const permData = await permRes.json();
+        if (permData.error) {
+          return {
+            success: false,
+            error: `El token de Facebook ingresado no es válido o ya expiró (Error: ${permData.error.message}).`,
+          };
+        }
+        const granted = (permData.data || [])
+          .filter((p: any) => p.status === 'granted')
+          .map((p: any) => p.permission);
+
+        const hasManageMessages =
+          granted.includes('instagram_manage_messages') ||
+          granted.includes('instagram_business_manage_messages');
+
+        if (!hasManageMessages) {
+          return {
+            success: false,
+            error: `El token ingresado NO tiene el permiso obligatorio "instagram_manage_messages". Permisos actuales: ${
+              granted.join(', ') || 'ninguno'
+            }. En Graph API Explorer, haz clic en "Add a Permission", selecciona "instagram_manage_messages" y vuelve a generar el token.`,
+          };
+        }
+      }
+    } catch (e: any) {
+      console.warn('[Meta Token Pre-Validation Warning]', e.message);
     }
 
     const db = await dbManager.getDb();
@@ -315,9 +369,9 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
     );
 
     if (integration) {
-      integration.access_token = accessToken.trim();
-      integration.account_username = username.trim() || integration.account_username || 'novaexa.ec';
-      integration.account_id = userId.trim() || integration.account_id || '110721452239193';
+      integration.access_token = cleanToken;
+      integration.account_username = validatedUsername;
+      integration.account_id = validatedUserId;
       integration.status = 'conectado';
       integration.token_expires_at = expiresAt;
       integration.webhook_verified = true;
@@ -332,9 +386,9 @@ export async function manualSaveInstagramTokenAction(accessToken: string, userna
         provider: 'instagram',
         app_id: defaultAppId,
         app_name: 'CRM Executive-IG',
-        account_id: userId.trim() || defaultAppId,
-        account_username: username.trim() || 'novaexa.ec',
-        access_token: accessToken.trim(),
+        account_id: validatedUserId,
+        account_username: validatedUsername,
+        access_token: cleanToken,
         token_expires_at: expiresAt,
         status: 'conectado',
         webhook_verified: true,
@@ -464,3 +518,29 @@ export async function simulateIncomingTestMessageAction(
     return { success: false, error: error.message || 'Error al generar mensaje de prueba' };
   }
 }
+
+/**
+ * Elimina una conversación y sus mensajes asociados
+ */
+export async function deleteConversationAction(conversationId: string) {
+  try {
+    const session = await getSession();
+    if (!session) return { success: false, error: 'Sesión no iniciada' };
+    if (!['admin', 'gerente'].includes(session.role)) {
+      return { success: false, error: 'Solo Administradores y Gerentes pueden eliminar conversaciones' };
+    }
+
+    const db = await dbManager.getDb();
+    db.conversations = db.conversations.filter(
+      (c) => !(c.id === conversationId && c.organization_id === session.organization_id)
+    );
+    db.messages = db.messages.filter((m) => m.conversation_id !== conversationId);
+
+    await dbManager.saveDb(db);
+    revalidatePath('/mensajes');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Error al eliminar conversación' };
+  }
+}
+

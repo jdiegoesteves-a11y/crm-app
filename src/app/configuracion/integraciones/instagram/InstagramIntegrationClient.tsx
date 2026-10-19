@@ -489,20 +489,28 @@ export function InstagramIntegrationClient({
             </div>
 
             <form onSubmit={handleManualSave} className="space-y-4 text-xs">
-              <p className="text-[#A5B2C1]">
-                Ingrese el User Access Token de su cuenta de Instagram generado desde Meta for Developers para activar la conexión en vivo.
-              </p>
+              <div className="p-3 rounded-lg bg-[#28B8AA]/10 border border-[#28B8AA]/30 text-[#A5B2C1] space-y-2">
+                <p className="font-semibold text-[#F4F7FA]">Formatos de Token compatibles:</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li>
+                    <strong className="text-[#34C48A]">Token de Instagram (Recomendado):</strong> Inicia con <code className="text-[#28B8AA]">IGAA...</code>. Se genera en <em>Casos de uso &gt; Administrar mensajes en Instagram &gt; Generar identificadores</em> para @novaexa.ec.
+                  </li>
+                  <li>
+                    <strong className="text-[#28B8AA]">Token de Facebook Graph API:</strong> Inicia con <code className="text-[#28B8AA]">EAA...</code>. Requiere obligatoriamente el permiso <code className="text-[#F0B454]">instagram_manage_messages</code>.
+                  </li>
+                </ul>
+              </div>
 
               <div>
                 <label className="block text-[#A5B2C1] font-semibold mb-1">
-                  Access Token de Instagram *
+                  Access Token de Meta / Instagram *
                 </label>
                 <textarea
                   required
                   rows={3}
                   value={manualToken}
                   onChange={(e) => setManualToken(e.target.value)}
-                  placeholder="EAAB..."
+                  placeholder="IGAA... o EAAT..."
                   className="crm-input font-mono text-xs w-full"
                 />
               </div>
